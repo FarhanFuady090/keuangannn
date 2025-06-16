@@ -1,11 +1,16 @@
 ## 👥 Team Behind This Project
 
 <p align="center">
-  <img src="fadhel.jpg" width="750" style="margin-right: 15px;" alt="Foto 1"/>
+   <a href="https://wa.me/+6289514960304" target="_blank">
   <img src="fathur.jpg" width="750" alt="Foto 2"/>
+  </a>
 </p>
 <p align="center">
   <em>Our Developers - Passionate, Dedicated, and Ready to Code!</em>
+    <em>For Busssiness Incuiris Contact:</em>
+     <a href="https://wa.me/+6289514960304" target="_blank">
+        Mr.  Ghoo
+  </a>
 </p>
 
 <p align="center">
