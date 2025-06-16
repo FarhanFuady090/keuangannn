@@ -57,22 +57,22 @@
 
             <h3 class="text-xl font-semibold text-gray-800 mb-4">Distribusi Keuangan per Unit Pendidikan</h3>
             <div class="overflow-x-auto">
-                <table class="min-w-full bg-white border border-gray-200 text-sm rounded-lg shadow-sm">
-                    <thead class="bg-gray-100 text-gray-700">
+            <table class="min-w-full bg-white border border-gray-300 text-sm rounded-lg shadow-sm border-collapse">
+                    <thead class="bg-gray-100 text-gray-700 ">
                         <tr>
-                            <th class="py-3 px-4 border-b">Unit Pendidikan</th>
-                            <th class="py-3 px-4 border-b">Total Tabungan Masuk</th>
-                            <th class="py-3 px-4 border-b">Total Tabungan Keluar</th>
-                            <th class="py-3 px-4 border-b">Total Tabungan Akhir</th>
-                            <th class="py-3 px-4 border-b">Total Kas Masuk</th>
-                            <th class="py-3 px-4 border-b">Total Kas Keluar</th>
-                            <th class="py-3 px-4 border-b">Total Kas</th>
-                            <th class="py-3 px-4 border-b">Total Tagihan Terbayar</th>
-                            <th class="py-3 px-4 border-b">Total Tagihan Belum Terbayar</th>
-                            <th class="py-3 px-4 border-b">Total Tagihan</th>
-                            <th class="py-3 px-4 border-b">Total Pemasukan</th>
-                            <th class="py-3 px-4 border-b">Total Pengeluaran</th>
-                            <th class="py-3 px-4 border-b">Total Akhir</th>
+                            <th class="py-3 px-4 border border-gray-300">Unit Pendidikan</th>
+                            <th class="py-3 px-4 border border-gray-300 bg-green-100">Total Tabungan Masuk</th>
+                            <th class="py-3 px-4 border border-gray-300 bg-green-100">Total Tabungan Keluar</th>
+                            <th class="py-3 px-4 border border-gray-300 bg-green-100">Total Tabungan Akhir</th>
+                            <th class="py-3 px-4 border border-gray-300 bg-blue-100">Total Kas Masuk</th>
+                            <th class="py-3 px-4 border border-gray-300 bg-blue-100">Total Kas Keluar</th>
+                            <th class="py-3 px-4 border border-gray-300 bg-blue-100">Total Kas</th>
+                            <th class="py-3 px-4 border border-gray-300 bg-red-100">Total Tagihan Terbayar</th>
+                            <th class="py-3 px-4 border border-gray-300 bg-red-100">Total Tagihan Belum Terbayar</th>
+                            <th class="py-3 px-4 border border-gray-300 bg-red-100">Total Tagihan</th>
+                            <th class="py-3 px-4 border border-gray-300">Total Pemasukan</th>
+                            <th class="py-3 px-4 border border-gray-300">Total Pengeluaran</th>
+                            <th class="py-3 px-4 border border-gray-300">Total Akhir</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,31 +94,31 @@
                             <td class="border px-4 py-2">
                                 {{ $unitNames[$data->unitpendidikan->id ?? null] ?? 'Unit Tidak Ditemukan' }}
                             </td>
-                            <td class="border px-4 py-2 text-center text-green-700">Rp
+                            <td class="border px-4 py-2 text-center text-green-700 bg-green-100 ">Rp
                                 {{ number_format($data->total_saldo_masuk, 0, ',', '.') }}
                             </td>
-                            <td class="border px-4 py-2 text-center text-red-700">Rp
+                            <td class="border px-4 py-2 text-center text-red-700 bg-green-100">Rp
                                 {{ number_format($data->total_saldo_keluar, 0, ',', '.') }}
                             </td>
-                            <td class="border px-4 py-2 text-center font-semibold text-blue-700">Rp
+                            <td class="border px-4 py-2 text-center font-semibold text-blue-700 bg-green-100">Rp
                                 {{ number_format($data->total_saldo_akhir, 0, ',', '.') }}
                             </td>
-                            <td class="border px-4 py-2 text-center text-green-700">Rp
+                            <td class="border px-4 py-2 text-center text-green-700 bg-blue-100">Rp
                                 {{ number_format($data->total_kas_masuk, 0, ',', '.') }}
                             </td>
-                            <td class="border px-4 py-2 text-center text-red-700">Rp
+                            <td class="border px-4 py-2 text-center text-red-700 bg-blue-100">Rp
                                 {{ number_format($data->total_kas_keluar, 0, ',', '.') }}
                             </td>
-                            <td class="border px-4 py-2 text-center font-semibold text-blue-700">Rp
+                            <td class="border px-4 py-2 text-center font-semibold text-blue-700 bg-blue-100">Rp
                                 {{ number_format($data->total_kas, 0, ',', '.') }}
                             </td>
-                            <td class="border px-4 py-2 text-center text-green-700">Rp
+                            <td class="border px-4 py-2 text-center text-green-700 bg-red-100">Rp
                                 {{ number_format($data->total_tagihan_terbayar, 0, ',', '.') }}
                             </td>
-                            <td class="border px-4 py-2 text-center text-red-700">Rp
+                            <td class="border px-4 py-2 text-center text-red-700 bg-red-100">Rp
                                 {{ number_format($data->total_tagihan_belum_terbayar, 0, ',', '.') }}
                             </td>
-                            <td class="border px-4 py-2 text-center font-semibold text-blue-700">Rp
+                            <td class="border px-4 py-2 text-center font-semibold text-blue-700 bg-red-100">Rp
                                 {{ number_format($data->total_tagihan, 0, ',', '.') }}
                             </td>
                             <td class="border px-4 py-2 text-center font-semibold text-green-700">Rp
@@ -144,34 +144,34 @@
                     <tfoot class="bg-gray-50">
                         <tr>
                             <th class="border px-4 py-2 font-bold text-gray-800">Total Keseluruhan</th>
-                            <th class="border px-4 py-2 text-center font-bold text-green-700">
+                            <th class="border px-4 py-2 text-center font-bold text-green-700 bg-green-100">
                                 Rp {{ number_format(collect($keuanganPerUnit)->sum('total_saldo_masuk'), 0, ',', '.') }}
                             </th>
-                            <th class="border px-4 py-2 text-center font-bold text-red-700">
+                            <th class="border px-4 py-2 text-center font-bold text-red-700 bg-green-100">
                                 Rp
                                 {{ number_format(collect($keuanganPerUnit)->sum('total_saldo_keluar'), 0, ',', '.') }}
                             </th>
-                            <th class="border px-4 py-2 text-center font-bold text-blue-700">
+                            <th class="border px-4 py-2 text-center font-bold text-blue-700 bg-green-100">
                                 Rp {{ number_format(collect($keuanganPerUnit)->sum('total_saldo_akhir'), 0, ',', '.') }}
                             </th>
-                            <th class="border px-4 py-2 text-center font-bold text-green-700">
+                            <th class="border px-4 py-2 text-center font-bold text-green-700 bg-blue-100">
                                 Rp {{ number_format(collect($keuanganPerUnit)->sum('total_kas_masuk'), 0, ',', '.') }}
                             </th>
-                            <th class="border px-4 py-2 text-center font-bold text-red-700">
+                            <th class="border px-4 py-2 text-center font-bold text-red-700 bg-blue-100">
                                 Rp {{ number_format(collect($keuanganPerUnit)->sum('total_kas_keluar'), 0, ',', '.') }}
                             </th>
-                            <th class="border px-4 py-2 text-center font-bold text-blue-700">
+                            <th class="border px-4 py-2 text-center font-bold text-blue-700 bg-blue-100">
                                 Rp {{ number_format(collect($keuanganPerUnit)->sum('total_kas'), 0, ',', '.') }}
                             </th>
-                            <th class="border px-4 py-2 text-center font-bold text-green-700">
+                            <th class="border px-4 py-2 text-center font-bold text-green-700 bg-red-100">
                                 Rp
                                 {{ number_format(collect($keuanganPerUnit)->sum('total_tagihan_terbayar'), 0, ',', '.') }}
                             </th>
-                            <th class="border px-4 py-2 text-center font-bold text-red-700">
+                            <th class="border px-4 py-2 text-center font-bold text-red-700 bg-red-100">
                                 Rp
                                 {{ number_format(collect($keuanganPerUnit)->sum('total_tagihan_belum_terbayar'), 0, ',', '.') }}
                             </th>
-                            <th class="border px-4 py-2 text-center font-bold text-blue-700">
+                            <th class="border px-4 py-2 text-center font-bold text-blue-700 bg-red-100">
                                 Rp {{ number_format(collect($keuanganPerUnit)->sum('total_tagihan'), 0, ',', '.') }}
                             </th>
                             <th class="border px-4 py-2 text-center font-bold text-green-700">
