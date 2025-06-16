@@ -102,8 +102,21 @@
 </li>
 
 <li>
+                <x-nav-link href="{{ route('tupusat.tagihan.create') }}" :active="request()->routeIs('tupusat.tagihan.create')">
+                    <svg class="flex-shrink-0 w-5 h-5 text-gray-100 transition duration-75 dark:text-gray-400 group-hover:text-gray-100 dark:group-hover:text-white"
+                        aria-hidden="true" xmlns="http://www.w3.org/1000/svg" fill="currentColor" viewBox="0 0 20 18">
+                        <path
+                            d="M14 2a3.963 3.963 0 0 0-1.4.267 6.439 6.439 0 0 1-1.331 6.638A4 4 0 1 0 14 2Zm1 9h-1.264A6.957 6.957 0 0 1 15 15v2a2.97 2.97 0 0 1-.184 1H19a1 1 0 0 0 1-1v-1a5.006 5.006 0 0 0-5-5ZM6.5 9a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM8 10H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z" />
+                    </svg>
+                    <span class="text-white text-white flex-1 ms-3 whitespace-nowrap">Buat Tagihan</span>
+                    <span
+                        class="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-100 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300"></span>
+                </x-nav-link>
+            </li>
+
+<li>
     <x-nav-link aria-controls="dropdown-kelas" data-collapse-toggle="dropdown-kelas"
-        :active="request()->routeIs('tupusat.tagihan-siswa.index') || request()->routeIs('tupusat.tagihan.show') || 
+        :active="request()->routeIs('tupusat.tagihan-siswa.index') || request()->routeIs('tupusat.tagihan.show') ||
                  request()->routeIs('tupusat.kas.index') ||  request()->routeIs('tupusat.kas.create') ||  request()->routeIs('tupusat.kas.trashed') ||  request()->routeIs('tupusat.kas.edit')"
         @click="toggleDropdown()">
         <!-- Ikon utama menu Manage Kelas -->
@@ -150,7 +163,7 @@
                         d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
                 <span class="flex-1 ms-3 whitespace-nowrap">
-                Kas Siswa</span>
+                Kas</span>
             </a>
         </li>
     </ul>
@@ -168,20 +181,6 @@
             class="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-100 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300"></span>
     </x-nav-link>
 </li>
-
-<li>
-                <x-nav-link href="{{ route('tupusat.laporan-transaksi') }}" :active="request()->routeIs('tupusat.laporan-transaksi') || request()->routeIs('tupusat.create-user') || request()->routeIs('tupusat.update-user')">
-                    <svg class="flex-shrink-0 w-5 h-5 text-gray-100 transition duration-75 dark:text-gray-400 group-hover:text-gray-100 dark:group-hover:text-white"
-                        aria-hidden="true" xmlns="http://www.w3.org/1000/svg" fill="currentColor" viewBox="0 0 20 18">
-                        <path
-                            d="M14 2a3.963 3.963 0 0 0-1.4.267 6.439 6.439 0 0 1-1.331 6.638A4 4 0 1 0 14 2Zm1 9h-1.264A6.957 6.957 0 0 1 15 15v2a2.97 2.97 0 0 1-.184 1H19a1 1 0 0 0 1-1v-1a5.006 5.006 0 0 0-5-5ZM6.5 9a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM8 10H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z" />
-                    </svg>
-                    <span class="text-white text-white flex-1 ms-3 whitespace-nowrap">Laporan</span>
-                    <span
-                        class="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-gray-100 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300"></span>
-                </x-nav-link>
-            </li>
-
             <li>
                 <form method="POST" action="{{ route('tupusat.logout') }}">
                     @csrf

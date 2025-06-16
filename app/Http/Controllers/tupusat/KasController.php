@@ -7,6 +7,7 @@ use App\Models\Kas;
 use App\Models\TransaksiKas;
 use App\Models\UnitPendidikan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class KasController extends Controller
 {
@@ -32,6 +33,7 @@ class KasController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'tanggal_bayar' => 'required|date',
             'kas_id' => 'required|exists:kas,id',
             'nominal' => 'required|numeric|min:1',
             'unitpendidikan_id' => 'required|exists:unitpendidikan,id',
@@ -40,6 +42,7 @@ class KasController extends Controller
         ]);
 
         TransaksiKas::create([
+            'tanggal_bayar' => $request->tanggal_bayar,
             'kas_id' => $request->kas_id,
             'nominal' => $request->nominal,
             'unitpendidikan_id' => $request->unitpendidikan_id,
@@ -64,6 +67,7 @@ class KasController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
+            'tanggal_bayar' => 'required|date',
             'kas_id' => 'required|exists:kas,id',
             'nominal' => 'required|numeric|min:1',
             'unitpendidikan_id' => 'required|exists:unitpendidikan,id',
@@ -72,6 +76,7 @@ class KasController extends Controller
 
         $transaksiKas = TransaksiKas::findOrFail($id);
         $transaksiKas->update([
+            'tanggal_bayar' => $request->tanggal_bayar,
             'kas_id' => $request->kas_id,
             'nominal' => $request->nominal,
             'unitpendidikan_id' => $request->unitpendidikan_id,
@@ -85,7 +90,11 @@ class KasController extends Controller
     public function destroy($id)
     {
         $transaksiKas = TransaksiKas::findOrFail($id);
+        $transaksiKas->deleted_by = Auth::user()->username; // Atau ->name / ->email tergantung kolom di User
+        $transaksiKas->save();
+        // Lakukan soft delete
         $transaksiKas->delete();
+
 
         return redirect()->route('tupusat.kas.index')->with('success', 'Transaksi kas berhasil dihapus.');
     }

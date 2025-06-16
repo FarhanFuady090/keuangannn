@@ -19,12 +19,34 @@ Route::prefix('tupusat')->middleware('auth:tupusat', 'verified')->group(function
 
     Route::get('dashboard', [DashboardController::class, 'index'])->name('tupusat.dashboard.index');
 
-    Route::get('/tagihan-siswa',         [TagihanController::class, 'index'])->name('tupusat.tagihan-siswa.index');
     /// Route untuk mengambil kelas berdasarkan unit pendidikan
     Route::get('/api/kelas-by-unit/{unit_id}', [TagihanController::class, 'getKelasByUnit']);
     // Route untuk mengambil siswa berdasarkan kelas
     Route::get('/api/siswa-by-kelas/{kelas_id}', [TagihanController::class, 'getSiswaByKelas']);
+
+    Route::get('tagihan/create', [TagihanController::class, 'create'])->name('tupusat.tagihan.create');
+    Route::post('tagihan', [TagihanController::class, 'store'])->name('tupusat.tagihan.store');
+
+    // AJAX untuk dropdown dinamis tagihan
+    // routes/web.php atau api.php jika ingin via API route
+    Route::get('/api/jenispembayaran/nominal', [TagihanController::class, 'getNominalJenisPembayaran'])->name('tupusat.api.jenispembayaran.nominal');
+
+    Route::get('/api/tagihan/jenispembayaran', [TagihanController::class, 'getJenisPembayaran'])->name('tupusat.api.jenispembayaran');
+    Route::get('/api/tagihan/siswa', [TagihanController::class, 'getSiswa'])->name('tupusat.api.siswa');
+    Route::get('/api/kelas', [TagihanController::class, 'getKelasByUnit'])->name('tupusat.api.kelas');
+    // Daftar Siswa
+    Route::get('/tagihan-siswa', [TagihanController::class, 'index'])->name('tupusat.tagihan-siswa.index');
+    // Cetak
+    Route::get('/tagihan/{siswa}/cetak', [TagihanController::class, 'cetak'])->name('tupusat.tagihan.cetak');
+    // Rincian Tagihan Siswa
     Route::get('/tagihan/{siswa}', [TagihanController::class, 'show'])->name('tupusat.tagihan.show');
+    // Form bayar tagihan
+    Route::get('/tagihan/{tagihan}/bayar', [TagihanController::class, 'formBayar'])->name('tupusat.tagihan.bayar.form');
+    // Proses pembayaran tagihan
+    Route::post('/tagihan/{tagihan}/bayar', [TagihanController::class, 'bayar'])->name('tupusat.tagihan.bayar.proses');
+    Route::get('/tupusat/tagihan/{tagihan}/cetak-kwitansi', [TagihanController::class, 'cetakKwitansi'])->name('tupusat.tagihan.cetak.kwitansi');
+    Route::post('/tupusat/tagihan/cetak-kwitansi-multiple', [TagihanController::class, 'cetakMultipleKwitansi'])->name('tupusat.tagihan.bulkKwitansi');
+    Route::get('tagihan/{siswaId}/export-excel', [TagihanController::class, 'exportExcel'])->name('tupusat.tagihan.export-excel');
 
     Route::get('tabungan', [TabunganController::class, 'index'])->name('tupusat.tabungan.index');
     Route::get('tabungan/create', [TabunganController::class, 'create'])->name('tupusat.tabungan.create');
@@ -59,18 +81,7 @@ Route::prefix('tupusat')->middleware('auth:tupusat', 'verified')->group(function
     Route::get('kas/trashed', [KasController::class, 'trashed'])->name('tupusat.kas.trashed');
     Route::post('kas/{id}/restore', [KasController::class, 'restore'])->name('tupusat.kas.restore');
     Route::delete('kas/{id}/force-delete', [KasController::class, 'forceDelete'])->name('tupusat.kas.forceDelete');
-    // Route::get('kas/laporan', [KasController::class, 'laporan'])->name('tupusat.kas.laporan');
 
-    // Route::get('kas/export-excel', [KasController::class, 'exportExcel'])->name('tupusat.kas.export.excel');
-    // Route::get('kas/export-pdf', [KasController::class, 'exportPDF'])->name('tupusat.kas.export.pdf');
-
-    // Route::get('/dashboard', function () {
-    //     return view('tupusat.dashboard');
-    // })->name('tupusat.dashboard');
-
-    // Route::get('/kas-siswa', function () {
-    //     return view('tupusat.kas-siswa');
-    // })->name('tupusat.kas-siswa');
 
     Route::get('/detail-tabungan', function () {
         return view('tupusat.detail-tabungan');
@@ -83,14 +94,6 @@ Route::prefix('tupusat')->middleware('auth:tupusat', 'verified')->group(function
     Route::get('/tarik-tabungan', function () {
         return view('tupusat.tarik-tabungan');
     })->name('tupusat.tarik-tabungan');
-
-    Route::get('/manage-transaksi',  function () {
-        return view('tupusat.manage-transaksi');
-    })->name('tupusat.manage-transaksi');
-
-    Route::get('/laporan-transaksi',  function () {
-        return view('tupusat.laporan-transaksi');
-    })->name('tupusat.laporan-transaksi');
 
     Route::middleware('auth')->group(function () {
         Route::get('/profile',  [TupusatProfileController::class, 'edit'])->name(name: 'tupusat.profile.edit');

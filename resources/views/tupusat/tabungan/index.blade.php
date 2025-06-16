@@ -11,10 +11,13 @@
                     class="bg-blue-400 text-white px-4 py-2 rounded flex items-center hover:bg-blue-500">
                       <i class="fas fa-file-export mr-2"></i> Data Tabungan
                   </a>
+                    @if(request()->get('trashed'))
+                    @else
                   <a href="{{ route('tupusat.tabungan.export.all') }}"
                     class="bg-blue-600 text-white px-4 py-2 rounded flex items-center hover:bg-blue-700">
                       <i class="fas fa-file-export mr-2"></i> Export Excel
                   </a>
+                  @endif
                   <a href="{{ route('tupusat.tabungan.create') }}"
                     class="bg-green-500 text-white px-4 py-2 rounded flex items-center hover:bg-green-600">
                       <i class="fas fa-plus mr-2"></i> Tambah Tabungan
@@ -27,49 +30,63 @@
             </div>
 
             <!-- Form Pencarian dan Filter -->
-            @if(request()->get('trashed'))
-            @else
-            <div class="mb-4 flex justify-between items-center">
-                <form action="{{ route('tupusat.tabungan.index') }}" method="GET" class="flex flex-wrap gap-2 items-center">
-                    <input type="text" name="search" value="{{ request()->get('search') }}"
-                        class="border border-gray-300 rounded px-4 py-2 w-64" placeholder="Cari nama siswa...">
+        <div class="mb-4 flex justify-between items-center">
+    <form action="{{ route('tupusat.tabungan.index') }}" method="GET" class="flex flex-wrap gap-2 items-center">
+        {{-- Hidden input untuk tetap kirim parameter trashed jika aktif --}}
+        @if(request()->get('trashed'))
+            <input type="hidden" name="trashed" value="true">
+        @endif
 
-                    <select name="unit" class="border border-gray-300 rounded px-4 py-2">
-                        <option value="">Semua Unit</option>
-                        @foreach ($units as $unit)
-                            <option value="{{ $unit->id }}" {{ request('unit') == $unit->id ? 'selected' : '' }}>
-                                {{ $unit->namaUnit }}
-                            </option>
-                        @endforeach
-                    </select>
+        <input type="text" name="search" value="{{ request()->get('search') }}"
+            class="border border-gray-300 rounded px-4 py-2 w-64" placeholder="Cari nama siswa...">
 
-                    <select name="kelas" class="border border-gray-300 rounded px-4 py-2">
-                        <option value="">Semua Kelas</option>
-                        @foreach ($kelasList as $kelas)
-                            <option value="{{ $kelas->id }}" {{ request('kelas') == $kelas->id ? 'selected' : '' }}>
-                                {{ $kelas->nama_kelas }}
-                            </option>
-                        @endforeach
-                    </select>
+        <select name="unit" class="border border-gray-300 rounded px-4 py-2">
+            <option value="">Semua Unit</option>
+            @foreach ($units as $unit)
+                <option value="{{ $unit->id }}" {{ request('unit') == $unit->id ? 'selected' : '' }}>
+                    {{ $unit->namaUnit }}
+                </option>
+            @endforeach
+        </select>
 
-                    <select name="status" class="border border-gray-300 rounded px-4 py-2">
-                        <option value="">Status Tabungan</option>
-                        <option value="Aktif" {{ request()->get('status') == 'Aktif' ? 'selected' : '' }}>Aktif</option>
-                        <option value="Non Aktif" {{ request()->get('status') == 'Non Aktif' ? 'selected' : '' }}>Non Aktif</option>
-                    </select>
+        <select name="kelas" class="border border-gray-300 rounded px-4 py-2">
+            <option value="">Semua Kelas</option>
+            @foreach ($kelasList as $kelas)
+                <option value="{{ $kelas->id }}" {{ request('kelas') == $kelas->id ? 'selected' : '' }}>
+                    {{ $kelas->nama_kelas }}
+                </option>
+            @endforeach
+        </select>
 
-                    <div class="flex gap-2">
-                        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
-                            Filter
-                        </button>
-                        <a href="{{ route('tupusat.tabungan.index') }}"
-                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded inline-block">
-                            Reset
-                        </a>
-                    </div>
-                </form>
-            </div>
-            @endif
+        <select name="status" class="border border-gray-300 rounded px-4 py-2">
+            <option value="">Status Siswa</option>
+            <option value="Aktif" {{ request('status') == 'Aktif' ? 'selected' : '' }}>Aktif</option>
+            <option value="Non Aktif" {{ request('status') == 'Non Aktif' ? 'selected' : '' }}>Non Aktif</option>
+            <option value="Lulus" {{ request('status') == 'Lulus' ? 'selected' : '' }}>Lulus</option>
+            <option value="Pindah" {{ request('status') == 'Pindah' ? 'selected' : '' }}>Pindah</option>
+            <option value="Drop Out" {{ request('status') == 'Drop Out' ? 'selected' : '' }}>Drop Out</option>
+        </select>
+
+        <div class="flex gap-2">
+            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                Filter
+            </button>
+
+            {{-- Reset dengan mempertahankan trashed atau tidak --}}
+            @php
+                $resetUrl = route('tupusat.tabungan.index');
+                if (request()->get('trashed')) {
+                    $resetUrl .= '?trashed=true';
+                }
+            @endphp
+
+            <a href="{{ $resetUrl }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded inline-block">
+                Reset
+            </a>
+        </div>
+    </form>
+</div>
+
             <!-- Konten -->
             <div class="bg-white p-4 rounded shadow">
                 @if(session('success'))
@@ -93,7 +110,7 @@
                                 <th class="py-2 px-4 border-r">Nama Siswa</th>
                                 <th class="py-2 px-4 border-r">Unit</th>
                                 <th class="py-2 px-4 border-r">Kelas</th>
-                                <th class="py-2 px-4 border-r">Saldo Awal</th>
+                                <th class="py-2 px-4 border-r">Setoran Awal</th>
                                 <th class="py-2 px-4 border-r">Saldo Akhir</th>
                                 <th class="py-2 px-4 border-r">Created By</th>
                                 @if(request()->get('trashed'))
@@ -103,7 +120,8 @@
                                 @if(request()->get('trashed'))
                                 <th class="py-2 px-4 border-r">Deleted By</th>
                                 @endif
-                                <th class="py-2 px-4 border-r">Status</th>
+                                <th class="py-2 px-4 border-r">Status Siswa</th>
+                                <th class="py-2 px-4 border-r">Status Tabungan</th>
                                 <th class="py-2 px-4">Aksi</th>
                             </tr>
                         </thead>
@@ -124,7 +142,20 @@
                                     @if(request()->get('trashed'))
                                     <td class="py-2 px-4 border-b">{{ $tabungan->deleted_by }}</td>
                                     @endif
-                                    <td class="py-2 px-4 border-r">
+                                  <td class="py-2 px-4 border-r">
+                                    @php
+                                        $status = $tabungan->siswa->status;
+                                        $statusColor = match($status) {
+                                            'Aktif' => 'green',
+                                            'Non Aktif' => 'red',
+                                            default => 'gray'
+                                        };
+                                    @endphp
+                                    <span class="px-2 py-1 text-xs font-semibold text-{{ $statusColor }}-700 bg-{{ $statusColor }}-100 rounded-full">
+                                        {{ $status }}
+                                    </span>
+                                </td>
+                                  <td class="py-2 px-4 border-r">
                                         @php
                                             $statusColor = match($tabungan->status) {
                                                 'Aktif' => 'green',
@@ -167,9 +198,9 @@
                       @empty
                                 <tr>
                                     @if(request()->get('trashed'))
-                                    <td colspan="10" class="py-4 text-center text-gray-500">Tidak ada data tabungan.</td>
+                                    <td colspan="11" class="py-4 text-center text-gray-500">Tidak ada data tabungan.</td>
                                     @else
-                                    <td colspan="10" class="py-4 text-center text-gray-500">Tidak ada data tabungan.</td>
+                                    <td colspan="11" class="py-4 text-center text-gray-500">Tidak ada data tabungan.</td>
                                     @endif
                                 </tr>
                             @endforelse

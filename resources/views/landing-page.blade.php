@@ -42,6 +42,14 @@
                     </x-primary-button>
                 </a>
             </div>
+               <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-2">YAYASAN</h3>
+                <a href="{{ route('yayasan.login') }}">
+                    <x-primary-button class="ms-3">
+                        {{ __('Log in') }}
+                    </x-primary-button>
+                </a>
+            </div>
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h3 class="text-xl font-semibold mb-2">TU PUSAT</h3>
                 <a href="{{ route('tupusat.login') }}">

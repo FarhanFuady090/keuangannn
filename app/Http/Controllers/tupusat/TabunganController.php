@@ -20,6 +20,7 @@ class TabunganController extends Controller
     {
         $query = Tabungan::with(['siswa.kelas.unitpendidikan']); // Eager load relasi siswa -> kelas -> unit
 
+        // Filter soft deleted
         if ($request->has('trashed') && $request->trashed == true) {
             $query->onlyTrashed();
         }
@@ -31,33 +32,37 @@ class TabunganController extends Controller
             });
         }
 
-        // Filter berdasarkan status
+        // 🔁 Ubah filter status agar berdasarkan status siswa
         if ($request->has('status') && $request->status != '') {
-            $query->where('status', $request->status);
+            $query->whereHas('siswa', function ($q) use ($request) {
+                $q->where('status', $request->status);
+            });
         }
 
+        // Filter berdasarkan unit pendidikan
         if ($request->has('unit') && $request->unit != '') {
             $query->whereHas('siswa.kelas.unitpendidikan', function ($q) use ($request) {
                 $q->where('id', $request->unit);
             });
         }
 
+        // Filter berdasarkan kelas
         if ($request->has('kelas') && $request->kelas != '') {
             $query->whereHas('siswa.kelas', function ($q) use ($request) {
                 $q->where('id', $request->kelas);
             });
         }
 
-
         // Ambil data dan paginate
         $tabungans = $query->paginate(20);
 
-        // Ambil data untuk dropdown filter
+        // Data dropdown
         $units = \App\Models\UnitPendidikan::all();
         $kelasList = \App\Models\Kelas::all();
 
         return view('tupusat.tabungan.index', compact('tabungans', 'units', 'kelasList'));
     }
+
 
     // Detail tabungan per siswa
     public function show($id, Request $request)
@@ -108,14 +113,16 @@ class TabunganController extends Controller
     // Membuat tabungan baru untuk siswa (jika belum punya)
     public function create()
     {
-        $siswas = Siswa::where('status', 'Aktif') // hanya yang aktif
+        $siswas = Siswa::where('status', 'Aktif')
             ->whereDoesntHave('tabungan', function ($query) {
-                $query->withTrashed(); // cek meskipun tabungannya di-soft-delete
+                $query->onlyTrashed();
             })
+            ->whereDoesntHave('tabungan') // pastikan tidak punya tabungan aktif juga
             ->get();
 
         return view('tupusat.tabungan.create', compact('siswas'));
     }
+
 
     public function store(Request $request)
     {
