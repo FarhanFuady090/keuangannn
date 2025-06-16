@@ -1,3 +1,13 @@
+## 👥 Team Behind This Project
+
+<p align="center">
+  <img src="fadhel.jpg" width="750" style="margin-right: 15px;" alt="Foto 1"/>
+  <img src="fathur.jpg" width="750" alt="Foto 2"/>
+</p>
+<p align="center">
+  <em>Our Developers - Passionate, Dedicated, and Ready to Code!</em>
+</p>
+
 <p align="center">
   <a href="https://laravel.com" target="_blank">
     <img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo">
@@ -68,12 +78,3 @@ Laravel is open-sourced software licensed under the [MIT license](https://openso
 
 ---
 
-## 👥 Team Behind This Project
-
-<p align="center">
-  <img src="fadhel.jpg" width="250" style="margin-right: 15px;" alt="Foto 1"/>
-  <img src="fathur.jpg" width="250" alt="Foto 2"/>
-</p>
-<p align="center">
-  <em>Our Developers - Passionate, Dedicated, and Ready to Code!</em>
-</p>
