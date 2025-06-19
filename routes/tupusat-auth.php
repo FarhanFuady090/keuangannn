@@ -15,6 +15,15 @@ Route::prefix('tupusat')->middleware('guest:tupusat')->group(function () {
     Route::post('login', [LoginController::class, 'store']);
 });
 
+Route::get('/login', [DashboardController::class, 'index'])->name('tupusat.dashboard.index')->middleware(['auth:tupusat', 'verified']);
+Route::get('/login', function () {
+    return redirect('/tupusat/dashboard');
+});
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('tupusat.dashboard.index')->middleware(['auth:tupusat', 'verified']);
+Route::get('/dashboard', function () {
+    return redirect('/tupusat/dashboard');
+});
+
 Route::prefix('tupusat')->middleware('auth:tupusat', 'verified')->group(function () {
 
     Route::get('dashboard', [DashboardController::class, 'index'])->name('tupusat.dashboard.index');

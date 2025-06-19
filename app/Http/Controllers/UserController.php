@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\unitpendidikan;
 use App\Models\Admin;
+use App\Models\Yayasan;
 use App\Models\tupusat;
 use App\Models\tuunit;
 use Illuminate\Support\Facades\DB;
@@ -16,20 +17,20 @@ class UserController extends Controller
 {
 
     public function indexuser(Request $request)
-{
-    $role = $request->get('role', 'all');
-    $perPage = $request->get('show', 10); // ambil jumlah item per halaman dari dropdown
+    {
+        $role = $request->get('role', 'all');
+        $perPage = $request->get('show', 10); // ambil jumlah item per halaman dari dropdown
 
-    $usersQuery = User::query();
+        $usersQuery = User::query();
 
-    if ($role !== 'all') {
-        $usersQuery->where('role', $role);
+        if ($role !== 'all') {
+            $usersQuery->where('role', $role);
+        }
+
+        $users = $usersQuery->paginate($perPage)->withQueryString();
+        // dd($users);
+        return view('admin.manage-user', compact('users', 'role'));
     }
-
-    $users = $usersQuery->paginate($perPage)->withQueryString();
-// dd($users);
-    return view('admin.manage-user', compact('users', 'role'));
-}
 
     function createuser()
     {
@@ -42,69 +43,81 @@ class UserController extends Controller
         $users = User::findorFail($id); // Mendapatkan data user berdasarkan ID
         return view('admin.update-user', compact('users'));
     }
-    
+
     public function updateuserr(Request $request, $id)
     {
         $users = User::findorFail($id);
 
         // Validasi dasar (kamu bisa tambahkan yang lain jika perlu)
-    $request->validate([
-        'nama_user' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email,' . $id,
-        'no_telp' => ['required', 'regex:/^[0-9]+$/', 'min:10'],
-        'username' => 'required|string|unique:users,username,' . $id,
-        'peran_user' => 'nullable|string|in:admin,tupusat,tuunit',
-        'namaUnit' => 'nullable|string',
-    ]);
+        $request->validate([
+            'nama_user' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'no_telp' => ['required', 'regex:/^[0-9]+$/', 'min:10'],
+            'username' => 'required|string|unique:users,username,' . $id,
+            'peran_user' => 'nullable|string|in:admin,tupusat,tuunit,yayasan',
+            'namaUnit' => 'nullable|string',
+        ]);
 
-    // Update table users
-    $users->update([
-        'name' => $request->nama_user,
-        'email' => $request->email,
-        'username' => $request->username,
-        'no_telp' => $request->no_telp,
-        'role' => $request->peran_user,
-        'namaUnit' => $request->namaUnit,
-    ]);
+        // Update table users
+        $users->update([
+            'name' => $request->nama_user,
+            'email' => $request->email,
+            'username' => $request->username,
+            'no_telp' => $request->no_telp,
+            'role' => $request->peran_user,
+            'namaUnit' => $request->namaUnit,
+        ]);
 
-    // Update ke tabel sesuai role
-    switch ($request->peran_user) {
-        case 'admin':
-            $admin = Admin::where('id', $id)->first();
-            if ($admin) {
-                $admin->update([
-                    'name' => $request->nama_user,
-                    'email' => $request->email,
-                    'username' => $request->username,
-                    'role' => $request->peran_user,
-                ]);
-            }
-            break;
+        // Update ke tabel sesuai role
+        switch ($request->peran_user) {
+            case 'admin':
+                $admin = Admin::where('id', $id)->first();
+                if ($admin) {
+                    $admin->update([
+                        'name' => $request->nama_user,
+                        'email' => $request->email,
+                        'username' => $request->username,
+                        'role' => $request->peran_user,
+                    ]);
+                }
+                break;
 
-        case 'tupusat':
-            $tupusat = Tupusat::where('id', $id)->first();
-            if ($tupusat) {
-                $tupusat->update([
-                    'name' => $request->nama_user,
-                    'email' => $request->email,
-                    'username' => $request->username,
-                    'role' => $request->peran_user,
-                ]);
-            }
-            break;
+            case 'yayasan':
+                $yayasan = Yayasan::where('id', $id)->first();
+                if ($yayasan) {
+                    $yayasan->update([
+                        'name' => $request->nama_user,
+                        'email' => $request->email,
+                        'username' => $request->username,
+                        'role' => $request->peran_user,
+                    ]);
+                }
+                break;
 
-        case 'tuunit':
-            $tuunit = Tuunit::where('id', $id)->first();
-            if ($tuunit) {
-                $tuunit->update([
-                    'name' => $request->nama_user,
-                    'email' => $request->email,
-                    'username' => $request->username,
-                    'role' => $request->peran_user,
-                ]);
-            }
-            break;
-    }
+            case 'tupusat':
+                $tupusat = Tupusat::where('id', $id)->first();
+                if ($tupusat) {
+                    $tupusat->update([
+                        'name' => $request->nama_user,
+                        'email' => $request->email,
+                        'username' => $request->username,
+                        'role' => $request->peran_user,
+                    ]);
+                }
+                break;
+
+            case 'tuunit':
+                $tuunit = Tuunit::where('id', $id)->first();
+                if ($tuunit) {
+                    $tuunit->update([
+                        'name' => $request->nama_user,
+                        'email' => $request->email,
+                        'username' => $request->username,
+                        'role' => $request->peran_user,
+                    ]);
+                }
+                break;
+        }
         return redirect()->route('admin.manage-user', $id)->with('success', 'Data User berhasil diperbarui');
     }
 
@@ -126,7 +139,7 @@ class UserController extends Controller
             'no_telp' => ['required', 'regex:/^[0-9]+$/', 'min:10'],
             'username' => 'required|string|unique:users,username',
             'password' => 'required|string|min:6',
-            'peran_user' => 'nullable|string|in:admin,tupusat,tuunit',
+            'peran_user' => 'nullable|string|in:admin,tupusat,tuunit,yayasan',
             'namaUnit' => 'nullable|string',
         ]);
 
@@ -161,6 +174,17 @@ class UserController extends Controller
             switch ($validated['peran_user']) {
                 case 'admin':
                     $admin = Admin::create([
+                        'user_id' => $users->id,
+                        'name' => $validated['nama_user'],
+                        'email' => $validated['email'],
+                        'password' => bcrypt($validated['password']),
+                        'username' => $validated['username'],
+                        'role' => $validated['peran_user'],
+                    ]);
+                    break;
+
+                case 'yayasan':
+                    $yayasan = Yayasan::create([
                         'user_id' => $users->id,
                         'name' => $validated['nama_user'],
                         'email' => $validated['email'],

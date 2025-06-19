@@ -18,6 +18,10 @@ class RoleSeeder extends Seeder
         ]);
 
         DB::table('role')->insert([
+            'peran_user' => 'yayasan',
+        ]);
+
+        DB::table('role')->insert([
             'peran_user' => 'tupusat',
         ]);
 

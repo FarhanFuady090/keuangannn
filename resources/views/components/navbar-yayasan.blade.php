@@ -70,7 +70,7 @@
         <ul class="space-y-2 font-medium">
 
             <li>
-                <x-nav-link href="{{ route('yayasan.dashboard.index') }}" :active="request()->routeIs('yayasan.dashboard.index')">
+                <x-nav-link href="{{ route('yayasan.dashboard') }}" :active="request()->routeIs('yayasan.dashboard')">
                     <svg class="w-5 h-5 text-gray-100 transition duration-75 dark:text-gray-400 group-hover:text-gray-400 dark:group-hover:text-white"
                         aria-hidden="true" xmlns="http://www.w3.org/1000/svg" fill="currentColor" viewBox="0 0 22 21">
                         <path

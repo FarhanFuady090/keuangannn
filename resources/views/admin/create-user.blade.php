@@ -69,6 +69,7 @@
                     <select id="peran_user" name="peran_user" required class="w-3/4 px-4 py-2 border rounded-md focus:ring focus:ring-green-300" required>
                         <option value="">Pilih Peran</option>
                         <option value="admin">Admin</option>
+                        <option value="yayasan">Yayasan</option>
                         <option value="tupusat">TU Pusat</option>
                         <option value="tuunit">TU Unit</option>
                     </select>
@@ -98,7 +99,7 @@
                     <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Simpan</button>
                 </div>
 
-                
+
             </form>
         </div>
     </div>

@@ -15,7 +15,7 @@ use App\Http\Controllers\AdminProfileController;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/dashboard', action: [DashboardController::class, 'showUser'])->name(name: 'admin.dashboard')->middleware(['auth:admin', 'verified']);
+Route::get('/dashboard', action: [DashboardController::class, 'showUser'])->name('admin.dashboard')->middleware(['auth:admin', 'verified']);
 Route::get('/dashboard', function () {
     return redirect('/admin/dashboard');
 });

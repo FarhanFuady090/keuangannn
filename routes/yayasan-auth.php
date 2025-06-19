@@ -4,7 +4,7 @@ use App\Http\Controllers\yayasan\Auth\LoginController;
 use App\Http\Controllers\yayasan\LapSiswaController;
 use App\Http\Controllers\yayasan\LapKasController;
 use App\Http\Controllers\yayasan\LapTabunganController;
-use App\Http\Controllers\yayasan\DashboardController;
+use App\Http\Controllers\yayasan\LapDashboardController;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
@@ -13,11 +13,17 @@ Route::prefix('yayasan')->middleware('guest:yayasan')->group(function () {
     Route::post('login', [LoginController::class, 'store']);
 });
 
+Route::get('/dashboard', [LapDashboardController::class, 'index'])->name('yayasan.dashboard')->middleware(['auth:yayasan', 'verified']);
+Route::get('/dashboard', function () {
+    return redirect('/yayasan/dashboard');
+});
+
 Route::prefix('yayasan')->middleware('auth:yayasan', 'verified')->group(function () {
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('yayasan.dashboard.index');
-    Route::get('/export-excel', [DashboardController::class, 'exportExcel'])->name('dashboard.export.excel');
-    Route::get('/export-pdf', [DashboardController::class, 'exportPDF'])->name('dashboard.export.pdf');
+    Route::get('/dashboard', [LapDashboardController::class, 'index'])->name('yayasan.dashboard');
+
+    Route::get('/export-excel', [LapDashboardController::class, 'exportExcel'])->name('dashboard.export.excel');
+    Route::get('/export-pdf', [LapDashboardController::class, 'exportPDF'])->name('dashboard.export.pdf');
 
     Route::prefix('laporan')->middleware('auth')->group(function () {
         Route::prefix('siswa')->middleware('auth')->group(function () {

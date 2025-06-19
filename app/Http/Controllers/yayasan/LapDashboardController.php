@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema; // Tambahkan import ini
 
-class DashboardController extends Controller
+class LapDashboardController extends Controller
 {
     public function index()
     {
