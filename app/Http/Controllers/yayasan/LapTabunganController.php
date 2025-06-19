@@ -63,42 +63,68 @@ class LapTabunganController extends Controller
             ]);
         }
 
+        $bulanInput = $request->input('bulan');       // ex: 1-12
+        $tahunInput = $request->input('tahun');       // ex: 2025
+        $semesterInput = $request->input('semester'); // 'Ganjil' or 'Genap'
 
-        if ($request->filled('tahun_ajaran') || $request->filled('semester')) {
-            $tahunInput = $request->input('tahun_ajaran'); // contoh: 2025
-            $semesterInput = $request->input('semester'); // Ganjil / Genap
+        if ($bulanInput && !$tahunInput) {
+            return back()->with('error', 'Silakan pilih tahun jika ingin memfilter berdasarkan bulan.');
+        }
 
-            // Jika tahun dipilih → tahun ajaran: Juli tahun itu sampai Juni tahun +1
-            if ($tahunInput) {
-                $start = Carbon::create($tahunInput, 7, 1)->startOfDay(); // 1 Juli tahun itu
-                $end = Carbon::create($tahunInput + 1, 6, 30)->endOfDay(); // 30 Juni tahun berikutnya
 
-                // Jika semester juga dipilih, sesuaikan
-                if ($semesterInput === 'Ganjil') {
-                    $start = Carbon::create($tahunInput, 7, 1)->startOfDay();
-                    $end = Carbon::create($tahunInput, 12, 31)->endOfDay();
-                } elseif ($semesterInput === 'Genap') {
-                    $start = Carbon::create($tahunInput + 1, 1, 1)->startOfDay();
-                    $end = Carbon::create($tahunInput + 1, 6, 30)->endOfDay();
-                }
-            }
-            // Jika hanya semester saja yang dipilih, tahun default = sekarang
-            elseif ($semesterInput) {
-                $nowYear = now()->year;
-                if ($semesterInput === 'Ganjil') {
-                    $start = Carbon::create($nowYear, 7, 1)->startOfDay();
-                    $end = Carbon::create($nowYear, 12, 31)->endOfDay();
-                } elseif ($semesterInput === 'Genap') {
-                    $start = Carbon::create($nowYear, 1, 1)->startOfDay();
-                    $end = Carbon::create($nowYear, 6, 30)->endOfDay();
-                }
-            }
+        $tanggalMulai = null;
+        $tanggalSelesai = null;
 
-            // Terapkan filter waktu
-            if (isset($start) && isset($end)) {
-                $query->whereBetween('created_at', [$start, $end]);
+        $tahun = $request->input('tahun');
+        $bulan = $request->input('bulan');
+        $tahunAjaran = $request->input('tahun_ajaran');
+        $semester = $request->input('semester');
+
+        // 1. Tahun + Bulan (Prioritas tertinggi)
+        if ($tahun && $bulan) {
+            $tanggalMulai = Carbon::create($tahun, $bulan, 1)->startOfMonth();
+            $tanggalSelesai = Carbon::create($tahun, $bulan, 1)->endOfMonth();
+        }
+
+        // 2. Tahun Ajaran + (opsional) Semester
+        elseif ($tahunAjaran) {
+            if ($semester === 'Ganjil') {
+                $tanggalMulai = Carbon::create($tahunAjaran, 7, 1)->startOfDay();
+                $tanggalSelesai = Carbon::create($tahunAjaran, 12, 31)->endOfDay();
+            } elseif ($semester === 'Genap') {
+                $tanggalMulai = Carbon::create($tahunAjaran + 1, 1, 1)->startOfDay();
+                $tanggalSelesai = Carbon::create($tahunAjaran + 1, 6, 30)->endOfDay();
+            } else {
+                // Jika tidak ada semester → tahun ajaran penuh
+                $tanggalMulai = Carbon::create($tahunAjaran, 7, 1)->startOfDay();
+                $tanggalSelesai = Carbon::create($tahunAjaran + 1, 6, 30)->endOfDay();
             }
         }
+
+        // 3. Hanya semester (pakai tahun sekarang)
+        elseif ($semester) {
+            $now = now()->year;
+            if ($semester === 'Ganjil') {
+                $tanggalMulai = Carbon::create($now, 7, 1)->startOfDay();
+                $tanggalSelesai = Carbon::create($now, 12, 31)->endOfDay();
+            } elseif ($semester === 'Genap') {
+                $tanggalMulai = Carbon::create($now, 1, 1)->startOfDay();
+                $tanggalSelesai = Carbon::create($now, 6, 30)->endOfDay();
+            }
+        }
+
+        // 4. Hanya tahun (misalnya: 2025 → Jan–Dec)
+        elseif ($tahun) {
+            $tanggalMulai = Carbon::create($tahun, 1, 1)->startOfDay();
+            $tanggalSelesai = Carbon::create($tahun, 12, 31)->endOfDay();
+        }
+
+        // Terapkan ke query
+        if ($tanggalMulai && $tanggalSelesai) {
+            $query->whereBetween('created_at', [$tanggalMulai, $tanggalSelesai]);
+        }
+
+
 
         // Ambil data dan paginate
         $tabungans = $query->paginate(20);

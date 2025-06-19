@@ -56,6 +56,79 @@
         </div> --}}
 
             <h3 class="text-xl font-semibold text-gray-800 mb-4">Distribusi Keuangan per Unit Pendidikan</h3>
+         {{-- <form method="GET" action="{{ route('yayasan.dashboard') }}" class="flex gap-2 mb-4">
+
+    <!-- Tahun -->
+    <select name="tahun" class="border border-gray-300 rounded px-4 py-2">
+        <option value="">Pilih Tahun</option>
+        @for ($i = now()->year + 1; $i >= 2024; $i--)
+            <option value="{{ $i }}" {{ request('tahun') == $i ? 'selected' : '' }}>
+                {{ $i }}/{{ $i+1 }}
+            </option>
+        @endfor
+    </select>
+
+    <!-- Semester -->
+    <select name="semester" class="border border-gray-300 rounded px-4 py-2 w-52">
+        <option value="">Pilih Semester</option>
+        <option value="Ganjil" {{ request('semester') == 'Ganjil' ? 'selected' : '' }}>Ganjil (Jul–Des)</option>
+        <option value="Genap" {{ request('semester') == 'Genap' ? 'selected' : '' }}>Genap (Jan–Jun)</option>
+    </select>
+
+    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        Terapkan
+    </button>
+</form> --}}
+<form method="GET" class="flex gap-2 items-center mb-4">
+
+    <!-- Tahun Ajaran -->
+    <select name="tahun" class="border border-gray-300 rounded px-4 py-2">
+        <option value="">Pilih Tahun Ajaran</option>
+        @for ($i = now()->year + 1; $i >= now()->year - 1; $i--)
+            <option value="{{ $i }}" {{ request('tahun') == $i ? 'selected' : '' }}>
+                {{ $i }}/{{ $i + 1 }}
+            </option>
+        @endfor
+    </select>
+
+    <!-- Semester -->
+    <select name="semester" class="border border-gray-300 rounded px-4 py-2">
+        <option value="">Pilih Semester</option>
+        <option value="Ganjil" {{ request('semester') == 'Ganjil' ? 'selected' : '' }}>Ganjil (Jul–Des)</option>
+        <option value="Genap" {{ request('semester') == 'Genap' ? 'selected' : '' }}>Genap (Jan–Jun)</option>
+    </select>
+
+    <!-- Bulan -->
+    <select name="bulan" class="border border-gray-300 rounded px-4 py-2">
+        <option value="">Pilih Bulan</option>
+        @for ($i = 1; $i <= 12; $i++)
+            <option value="{{ $i }}" {{ request('bulan') == $i ? 'selected' : '' }}>
+                {{ DateTime::createFromFormat('!m', $i)->format('F') }}
+            </option>
+        @endfor
+    </select>
+
+        <!-- Tahun -->
+<select name="tahun" class="border border-gray-300 rounded px-4 py-2">
+    <option value="">Pilih Tahun</option>
+    @for ($i = now()->year + 1; $i >= now()->year - 1; $i--)
+        <option value="{{ $i }}" {{ request('tahun') == $i ? 'selected' : '' }}>
+            {{ $i }}
+        </option>
+    @endfor
+</select>
+
+    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        Terapkan
+    </button>
+
+    <a href="{{ route('yayasan.dashboard') }}"
+       class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+        Reset
+    </a>
+</form>
+
+
             <div class="overflow-x-auto">
             <table class="min-w-full bg-white border border-gray-300 text-sm rounded-lg shadow-sm border-collapse">
                     <thead class="bg-gray-200 text-gray-700 ">

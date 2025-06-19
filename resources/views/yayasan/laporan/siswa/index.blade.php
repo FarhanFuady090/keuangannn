@@ -140,7 +140,7 @@
                                 <th class="py-2 px-4 border-r border-gray-300" rowspan="2">Jenis Kelamin</th>
                                 <th class="py-2 px-4 border-r border-gray-300" rowspan="2">Kelas</th>
                                 <th class="py-2 px-4 border-r border-gray-300" colspan="2">Unit Pendidikan</th>
-                                <th class="py-2 px-4 border-r border-gray-300" rowspan="2">Pondok</th>
+                                <th class="py-2 px-4 border-r border-gray-300" rowspan="2">Status Pondok</th>
                                 <th class="py-2 px-4 border-r border-gray-300" rowspan="2">Status</th>
                                 <th class="py-2 px-4 border-r border-gray-300" rowspan="2">Aksi</th>
                             </tr>

@@ -12,10 +12,11 @@ use App\Models\Kas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema; // Tambahkan import ini
+use Carbon\Carbon;
 
 class LapDashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $siswaAktif = Siswa::where('status', 'Aktif')->count();
         $siswaNonAktif = Siswa::where('status', 'Non Aktif')->count();
@@ -82,72 +83,145 @@ class LapDashboardController extends Controller
 
         $keuanganPerUnit = collect();
 
+
+        $bulanInput = $request->input('bulan');       // ex: 1-12
+        $tahunInput = $request->input('tahun');       // ex: 2025
+        $semesterInput = $request->input('semester'); // 'Ganjil' or 'Genap'
+
+        if ($bulanInput && !$tahunInput) {
+            return back()->with('error', 'Silakan pilih tahun jika ingin memfilter berdasarkan bulan.');
+        }
+
+        $tanggalMulai = null;
+        $tanggalSelesai = null;
+
+        if ($tahunInput && $semesterInput) {
+            if ($semesterInput === 'Ganjil') {
+                $tanggalMulai = Carbon::create($tahunInput, 7, 1)->startOfDay();
+                $tanggalSelesai = Carbon::create($tahunInput, 12, 31)->endOfDay();
+            } elseif ($semesterInput === 'Genap') {
+                $tanggalMulai = Carbon::create($tahunInput + 1, 1, 1)->startOfDay();
+                $tanggalSelesai = Carbon::create($tahunInput + 1, 6, 30)->endOfDay();
+            }
+        } elseif ($tahunInput && $bulanInput) {
+            // Hanya bulan & tahun
+            $tanggalMulai = Carbon::create($tahunInput, $bulanInput, 1)->startOfMonth();
+            $tanggalSelesai = Carbon::create($tahunInput, $bulanInput, 1)->endOfMonth();
+        } elseif ($tahunInput && !$semesterInput && !$bulanInput) {
+            // Hanya tahun saja
+            $tanggalMulai = Carbon::create($tahunInput, 1, 1)->startOfDay();
+            $tanggalSelesai = Carbon::create($tahunInput, 12, 31)->endOfDay();
+        }
+
+
         foreach ($allUnits as $unit) {
             $unitId = $unit->id;
 
             // Total Saldo Masuk (Setoran + Saldo Awal)
-            $totalSetoranTransaksi = TransaksiTabungan::join('tabungans', 'transaksi_tabungans.tabungan_id', '=', 'tabungans.id')
+            $querySetoran = TransaksiTabungan::join('tabungans', 'transaksi_tabungans.tabungan_id', '=', 'tabungans.id')
                 ->join('siswas', 'tabungans.siswa_id', '=', 'siswas.id')
                 ->where('transaksi_tabungans.jenis_transaksi', 'Setoran')
                 ->where('tabungans.status', 'Aktif')
-                ->where('siswas.unitpendidikan_id', $unitId)
-                ->sum('transaksi_tabungans.jumlah');
+                ->where('siswas.unitpendidikan_id', $unitId);
 
-            $totalSaldoAwal = Tabungan::join('siswas', 'tabungans.siswa_id', '=', 'siswas.id')
+            if ($tanggalMulai && $tanggalSelesai) {
+                $querySetoran->whereBetween('transaksi_tabungans.created_at', [$tanggalMulai, $tanggalSelesai]);
+            }
+
+            $totalSetoranTransaksi = $querySetoran->sum('transaksi_tabungans.jumlah');
+
+
+            $querySaldoAwal = Tabungan::join('siswas', 'tabungans.siswa_id', '=', 'siswas.id')
                 ->where('tabungans.status', 'Aktif')
-                ->where('siswas.unitpendidikan_id', $unitId)
-                ->sum('tabungans.saldo_awal');
+                ->where('siswas.unitpendidikan_id', $unitId);
+
+            if ($tanggalMulai && $tanggalSelesai) {
+                $querySaldoAwal->whereBetween('tabungans.created_at', [$tanggalMulai, $tanggalSelesai]);
+            }
+
+            $totalSaldoAwal = $querySaldoAwal->sum('tabungans.saldo_awal');
+
 
             $totalSaldoMasuk = $totalSetoranTransaksi + $totalSaldoAwal;
 
             // Total Kas Masuk - cek apakah kolom unitpendidikan_id ada
             $totalKasMasuk = 0;
             if (Schema::hasColumn('transaksi_kas', 'unitpendidikan_id')) {
-                $totalKasMasuk = TransaksiKas::join('kas', 'transaksi_kas.kas_id', '=', 'kas.id')
+                $queryKasMasuk = TransaksiKas::join('kas', 'transaksi_kas.kas_id', '=', 'kas.id')
                     ->where('kas.kategori', 'Pemasukan')
                     ->where('kas.status', 'Aktif')
-                    ->where('transaksi_kas.unitpendidikan_id', $unitId)
-                    ->sum('transaksi_kas.nominal');
+                    ->where('transaksi_kas.unitpendidikan_id', $unitId);
+
+                if ($tanggalMulai && $tanggalSelesai) {
+                    $queryKasMasuk->whereBetween('transaksi_kas.created_at', [$tanggalMulai, $tanggalSelesai]);
+                }
+
+                $totalKasMasuk = $queryKasMasuk->sum('transaksi_kas.nominal');
             }
+
 
             // Total Tagihan Terbayar (placeholder - sesuaikan dengan tabel tagihan Anda)
             $totalTagihanTerbayar = 0;
 
             // Total Saldo Keluar
-            $totalSaldoKeluar = TransaksiTabungan::join('tabungans', 'transaksi_tabungans.tabungan_id', '=', 'tabungans.id')
+            $queryPenarikan = TransaksiTabungan::join('tabungans', 'transaksi_tabungans.tabungan_id', '=', 'tabungans.id')
                 ->join('siswas', 'tabungans.siswa_id', '=', 'siswas.id')
                 ->where('transaksi_tabungans.jenis_transaksi', 'Penarikan')
                 ->where('tabungans.status', 'Aktif')
-                ->where('siswas.unitpendidikan_id', $unitId)
-                ->sum('transaksi_tabungans.jumlah');
+                ->where('siswas.unitpendidikan_id', $unitId);
+
+            if ($tanggalMulai && $tanggalSelesai) {
+                $queryPenarikan->whereBetween('transaksi_tabungans.created_at', [$tanggalMulai, $tanggalSelesai]);
+            }
+
+            $totalSaldoKeluar = $queryPenarikan->sum('transaksi_tabungans.jumlah');
+
 
             // Total Kas Keluar - cek apakah kolom unitpendidikan_id ada
             $totalKasKeluar = 0;
             if (Schema::hasColumn('transaksi_kas', 'unitpendidikan_id')) {
-                $totalKasKeluar = TransaksiKas::join('kas', 'transaksi_kas.kas_id', '=', 'kas.id')
+                $queryKasKeluar = TransaksiKas::join('kas', 'transaksi_kas.kas_id', '=', 'kas.id')
                     ->where('kas.kategori', 'Pengeluaran')
                     ->where('kas.status', 'Aktif')
-                    ->where('transaksi_kas.unitpendidikan_id', $unitId)
-                    ->sum('transaksi_kas.nominal');
+                    ->where('transaksi_kas.unitpendidikan_id', $unitId);
+
+                if ($tanggalMulai && $tanggalSelesai) {
+                    $queryKasKeluar->whereBetween('transaksi_kas.created_at', [$tanggalMulai, $tanggalSelesai]);
+                }
+
+                $totalKasKeluar = $queryKasKeluar->sum('transaksi_kas.nominal');
             }
+
 
             // Total Tagihan Belum Terbayar (placeholder)
             $totalTagihanBelumTerbayar = 0;
 
             // Total Saldo Akhir
-            $totalSaldoAkhir = Tabungan::join('siswas', 'tabungans.siswa_id', '=', 'siswas.id')
+            $queryTabungan = Tabungan::join('siswas', 'tabungans.siswa_id', '=', 'siswas.id')
                 ->where('tabungans.status', 'Aktif')
-                ->where('siswas.unitpendidikan_id', $unitId)
-                ->get()
-                ->sum(function ($tabungan) {
-                    $setoran = TransaksiTabungan::where('tabungan_id', $tabungan->id)
-                        ->where('jenis_transaksi', 'Setoran')
-                        ->sum('jumlah');
-                    $penarikan = TransaksiTabungan::where('tabungan_id', $tabungan->id)
-                        ->where('jenis_transaksi', 'Penarikan')
-                        ->sum('jumlah');
-                    return $tabungan->saldo_awal + $setoran - $penarikan;
-                });
+                ->where('siswas.unitpendidikan_id', $unitId);
+
+            if ($tanggalMulai && $tanggalSelesai) {
+                $queryTabungan->whereBetween('tabungans.created_at', [$tanggalMulai, $tanggalSelesai]);
+            }
+
+            $tabungansForUnit = $queryTabungan->get();
+
+            $totalSaldoAkhir = $tabungansForUnit->sum(function ($tabungan) use ($tanggalMulai, $tanggalSelesai) {
+                $setoran = TransaksiTabungan::where('tabungan_id', $tabungan->id)
+                    ->where('jenis_transaksi', 'Setoran');
+
+                $penarikan = TransaksiTabungan::where('tabungan_id', $tabungan->id)
+                    ->where('jenis_transaksi', 'Penarikan');
+
+                if ($tanggalMulai && $tanggalSelesai) {
+                    $setoran->whereBetween('created_at', [$tanggalMulai, $tanggalSelesai]);
+                    $penarikan->whereBetween('created_at', [$tanggalMulai, $tanggalSelesai]);
+                }
+
+                return $tabungan->saldo_awal + $setoran->sum('jumlah') - $penarikan->sum('jumlah');
+            });
+
 
             // Hanya tambahkan unit yang memiliki data keuangan
             if ($totalSaldoMasuk > 0 || $totalKasMasuk > 0 || $totalSaldoKeluar > 0 || $totalKasKeluar > 0 || $totalSaldoAkhir > 0) {

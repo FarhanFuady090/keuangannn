@@ -60,7 +60,7 @@
     <form method="GET" action="{{ route('yayasan.laporan.kas.index') }}" class="flex flex-wrap gap-3 items-center mb-4">
 
     <!-- Filter Kas -->
-    <select name="kas" class="border border-gray-300 rounded p-2 text-sm">
+    <select name="kas" class="border border-gray-300 rounded p-2 text-sm w-[150px]">
         <option value="">Pilih Kas</option>
         @foreach($filterKas as $kasItem)
             <option value="{{ $kasItem->id }}" {{ request('kas') == $kasItem->id ? 'selected' : '' }}>
@@ -93,18 +93,14 @@
 <input type="date" name="tanggal_akhir" class="border border-gray-300 rounded p-2 text-sm"
        value="{{ request('tanggal_akhir') }}">
 
-       <!-- Filter Bulan -->
-<select name="bulan" class="border border-gray-300 rounded p-2 text-sm">
-    <option value="">Pilih Bulan</option>
-    @for ($i = 1; $i <= 12; $i++)
-        <option value="{{ $i }}" {{ request('bulan') == $i ? 'selected' : '' }}>
-            {{ DateTime::createFromFormat('!m', $i)->format('F') }}
-        </option>
-    @endfor
-</select>
+                <select name="semester" class="border border-gray-300 rounded px-4 py-2">
+                    <option value="">Pilih Semester</option>
+                        <option value="Ganjil" {{ request('semester') == 'Ganjil' ? 'selected' : '' }}>Ganjil (Jul–Des)</option>
+                        <option value="Genap" {{ request('semester') == 'Genap' ? 'selected' : '' }}>Genap (Jan–Jun)</option>
+                 </select>
 
                  <select name="tahun_ajaran" class="border border-gray-300 rounded px-4 py-2">
-                  <option value="">Pilih Tahun</option>
+                  <option value="">Pilih Tahun Ajaran</option>
                         @for ($i = now()->year + 1; $i >= 2024; $i--)
                             <option value="{{ $i }}" {{ request('tahun_ajaran') == $i ? 'selected' : '' }}>
                                 {{ $i }}/{{ $i+1 }}
@@ -112,11 +108,23 @@
                         @endfor
                 </select>
 
-                <select name="semester" class="border border-gray-300 rounded px-4 py-2">
-                    <option value="">Pilih Semester</option>
-                        <option value="Ganjil" {{ request('semester') == 'Ganjil' ? 'selected' : '' }}>Ganjil (Jul–Des)</option>
-                        <option value="Genap" {{ request('semester') == 'Genap' ? 'selected' : '' }}>Genap (Jan–Jun)</option>
-                 </select>
+                 {{-- Pilih Bulan --}}
+<select name="bulan" class="border border-gray-300 rounded px-3 py-2">
+    <option value="">Bulan</option>
+    @for ($i = 1; $i <= 12; $i++)
+        <option value="{{ $i }}" {{ request('bulan') == $i ? 'selected' : '' }}>
+            {{ DateTime::createFromFormat('!m', $i)->format('F') }}
+        </option>
+    @endfor
+</select>
+
+                 {{-- Pilih Tahun --}}
+<select name="tahun" class="border border-gray-300 rounded px-3 py-2">
+    <option value="">Tahun</option>
+    @for ($i = now()->year + 1; $i >= now()->year - 1; $i--)
+        <option value="{{ $i }}" {{ request('tahun') == $i ? 'selected' : '' }}>{{ $i }}</option>
+    @endfor
+</select>
 
 
     <!-- Tombol Tampilkan dan Reset -->

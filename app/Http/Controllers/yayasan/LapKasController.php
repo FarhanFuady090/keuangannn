@@ -30,7 +30,7 @@ class LapKasController extends Controller
             $query->where('created_by', $request->created_by);
         }
 
-        // Filter rentang waktu created_at
+        // Filter rentang waktu manual
         if ($request->filled('tanggal_awal') && $request->filled('tanggal_akhir')) {
             $query->whereBetween('created_at', [
                 $request->tanggal_awal . ' 00:00:00',
@@ -38,40 +38,45 @@ class LapKasController extends Controller
             ]);
         }
 
-        if ($request->filled('tahun_ajaran') || $request->filled('semester')) {
-            $tahunInput = $request->input('tahun_ajaran'); // contoh: 2025
-            $semesterInput = $request->input('semester'); // Ganjil / Genap
+        // === Filter Tahun Ajaran dan Semester ===
+        $tahunAjaran = $request->input('tahun_ajaran');
+        $semester = $request->input('semester');
+        $tahun = $request->input('tahun'); // Tahun biasa (misal: 2025)
+        $bulan = $request->input('bulan'); // 1–12
 
-            // Jika tahun dipilih → tahun ajaran: Juli tahun itu sampai Juni tahun +1
-            if ($tahunInput) {
-                $start = Carbon::create($tahunInput, 7, 1)->startOfDay(); // 1 Juli tahun itu
-                $end = Carbon::create($tahunInput + 1, 6, 30)->endOfDay(); // 30 Juni tahun berikutnya
+        $start = null;
+        $end = null;
 
-                // Jika semester juga dipilih, sesuaikan
-                if ($semesterInput === 'Ganjil') {
-                    $start = Carbon::create($tahunInput, 7, 1)->startOfDay();
-                    $end = Carbon::create($tahunInput, 12, 31)->endOfDay();
-                } elseif ($semesterInput === 'Genap') {
-                    $start = Carbon::create($tahunInput + 1, 1, 1)->startOfDay();
-                    $end = Carbon::create($tahunInput + 1, 6, 30)->endOfDay();
-                }
+        if ($tahun && $bulan) {
+            $start = Carbon::create($tahun, $bulan, 1)->startOfMonth();
+            $end = Carbon::create($tahun, $bulan, 1)->endOfMonth();
+        } elseif ($tahunAjaran) {
+            if ($semester === 'Ganjil') {
+                $start = Carbon::create($tahunAjaran, 7, 1)->startOfDay();
+                $end = Carbon::create($tahunAjaran, 12, 31)->endOfDay();
+            } elseif ($semester === 'Genap') {
+                $start = Carbon::create($tahunAjaran + 1, 1, 1)->startOfDay();
+                $end = Carbon::create($tahunAjaran + 1, 6, 30)->endOfDay();
+            } else {
+                $start = Carbon::create($tahunAjaran, 7, 1)->startOfDay();
+                $end = Carbon::create($tahunAjaran + 1, 6, 30)->endOfDay();
             }
-            // Jika hanya semester saja yang dipilih, tahun default = sekarang
-            elseif ($semesterInput) {
-                $nowYear = now()->year;
-                if ($semesterInput === 'Ganjil') {
-                    $start = Carbon::create($nowYear, 7, 1)->startOfDay();
-                    $end = Carbon::create($nowYear, 12, 31)->endOfDay();
-                } elseif ($semesterInput === 'Genap') {
-                    $start = Carbon::create($nowYear, 1, 1)->startOfDay();
-                    $end = Carbon::create($nowYear, 6, 30)->endOfDay();
-                }
+        } elseif ($semester) {
+            $nowYear = now()->year;
+            if ($semester === 'Ganjil') {
+                $start = Carbon::create($nowYear, 7, 1)->startOfDay();
+                $end = Carbon::create($nowYear, 12, 31)->endOfDay();
+            } elseif ($semester === 'Genap') {
+                $start = Carbon::create($nowYear, 1, 1)->startOfDay();
+                $end = Carbon::create($nowYear, 6, 30)->endOfDay();
             }
+        } elseif ($tahun) {
+            $start = Carbon::create($tahun, 1, 1)->startOfDay();
+            $end = Carbon::create($tahun, 12, 31)->endOfDay();
+        }
 
-            // Terapkan filter waktu
-            if (isset($start) && isset($end)) {
-                $query->whereBetween('created_at', [$start, $end]);
-            }
+        if ($start && $end) {
+            $query->whereBetween('created_at', [$start, $end]);
         }
 
         $transaksiKas = $query->get();
@@ -91,7 +96,6 @@ class LapKasController extends Controller
             ->filter();
 
         $createdByUsers = TransaksiKas::select('created_by')->distinct()->pluck('created_by');
-
         $kas = Kas::where('status', 'Aktif')->get();
 
         return view('yayasan.laporan.kas.index', compact(
@@ -102,7 +106,6 @@ class LapKasController extends Controller
             'kas'
         ));
     }
-
 
     public function trashed()
     {
