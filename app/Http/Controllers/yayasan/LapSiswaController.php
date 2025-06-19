@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 
+
 class LapSiswaController extends Controller
 {
 
@@ -58,6 +59,7 @@ class LapSiswaController extends Controller
         if ($request->filled('unitpendidikan_idPondok')) {
             $query->where('unitpendidikan_idPondok', $request->unitpendidikan_idPondok);
         }
+
 
         // Ambil jumlah entri yang ingin ditampilkan
         $perPage = $request->filled('entries') ? (int)$request->entries : 10;

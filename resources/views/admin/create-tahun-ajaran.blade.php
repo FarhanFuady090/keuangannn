@@ -71,7 +71,7 @@
                 if (awalInput.value) {
                     let awalDate = new Date(awalInput.value);
                     awalDate.setMonth(awalDate.getMonth() + 6); // Tambah 6 bulan
-                    
+
                     // Format YYYY-MM-DD untuk input date
                     let akhirDate = awalDate.toISOString().split("T")[0];
 

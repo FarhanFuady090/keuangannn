@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -14,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tahunAjaran', function (Blueprint $table) {
             $table->id('id');
-            $table->year('tahun_ajaran')->unique();
+            $table->year('tahun_ajaran');
             $table->date('awal')->unique();
             $table->date('akhir');
             $table->enum('status', ['Aktif', 'Non Aktif']);

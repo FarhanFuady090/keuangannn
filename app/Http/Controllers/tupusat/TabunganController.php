@@ -56,11 +56,29 @@ class TabunganController extends Controller
         // Ambil data dan paginate
         $tabungans = $query->paginate(20);
 
+        // Loop tabungan untuk hitung total setoran & penarikan
+        foreach ($tabungans as $tabungan) {
+            $setoranAwal = $tabungan->saldo_awal;
+
+            $totalSetoranTransaksi = $tabungan->transaksi()
+                ->where('jenis_transaksi', 'Setoran')
+                ->sum('jumlah');
+
+            $totalPenarikan = $tabungan->transaksi()
+                ->where('jenis_transaksi', 'Penarikan')
+                ->sum('jumlah');
+
+            // Tambahkan ke properti virtual
+            $tabungan->total_setoran = $setoranAwal + $totalSetoranTransaksi;
+            $tabungan->total_penarikan = $totalPenarikan;
+        }
+
+
         // Data dropdown
         $units = \App\Models\UnitPendidikan::all();
         $kelasList = \App\Models\Kelas::all();
 
-        return view('tupusat.tabungan.index', compact('tabungans', 'units', 'kelasList'));
+        return view('tupusat.tabungan.index', compact('tabungan', 'tabungans', 'units', 'kelasList'));
     }
 
 

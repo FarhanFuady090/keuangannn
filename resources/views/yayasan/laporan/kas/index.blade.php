@@ -103,15 +103,20 @@
     @endfor
 </select>
 
-<!-- Filter Tahun -->
-<select name="tahun" class="border border-gray-300 rounded p-2 text-sm">
-    <option value="">Pilih Tahun</option>
-    @for ($year = now()->year; $year >= 2020; $year--)
-        <option value="{{ $year }}" {{ request('tahun') == $year ? 'selected' : '' }}>
-            {{ $year }}
-        </option>
-    @endfor
-</select>
+                 <select name="tahun_ajaran" class="border border-gray-300 rounded px-4 py-2">
+                  <option value="">Pilih Tahun</option>
+                        @for ($i = now()->year + 1; $i >= 2024; $i--)
+                            <option value="{{ $i }}" {{ request('tahun_ajaran') == $i ? 'selected' : '' }}>
+                                {{ $i }}/{{ $i+1 }}
+                            </option>
+                        @endfor
+                </select>
+
+                <select name="semester" class="border border-gray-300 rounded px-4 py-2">
+                    <option value="">Pilih Semester</option>
+                        <option value="Ganjil" {{ request('semester') == 'Ganjil' ? 'selected' : '' }}>Ganjil (Jul–Des)</option>
+                        <option value="Genap" {{ request('semester') == 'Genap' ? 'selected' : '' }}>Genap (Jan–Jun)</option>
+                 </select>
 
 
     <!-- Tombol Tampilkan dan Reset -->

@@ -8,6 +8,8 @@ use App\Models\TransaksiKas;
 use App\Models\UnitPendidikan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\TahunAjaran;
+use Carbon\Carbon;
 
 class LapKasController extends Controller
 {
@@ -34,6 +36,42 @@ class LapKasController extends Controller
                 $request->tanggal_awal . ' 00:00:00',
                 $request->tanggal_akhir . ' 23:59:59'
             ]);
+        }
+
+        if ($request->filled('tahun_ajaran') || $request->filled('semester')) {
+            $tahunInput = $request->input('tahun_ajaran'); // contoh: 2025
+            $semesterInput = $request->input('semester'); // Ganjil / Genap
+
+            // Jika tahun dipilih → tahun ajaran: Juli tahun itu sampai Juni tahun +1
+            if ($tahunInput) {
+                $start = Carbon::create($tahunInput, 7, 1)->startOfDay(); // 1 Juli tahun itu
+                $end = Carbon::create($tahunInput + 1, 6, 30)->endOfDay(); // 30 Juni tahun berikutnya
+
+                // Jika semester juga dipilih, sesuaikan
+                if ($semesterInput === 'Ganjil') {
+                    $start = Carbon::create($tahunInput, 7, 1)->startOfDay();
+                    $end = Carbon::create($tahunInput, 12, 31)->endOfDay();
+                } elseif ($semesterInput === 'Genap') {
+                    $start = Carbon::create($tahunInput + 1, 1, 1)->startOfDay();
+                    $end = Carbon::create($tahunInput + 1, 6, 30)->endOfDay();
+                }
+            }
+            // Jika hanya semester saja yang dipilih, tahun default = sekarang
+            elseif ($semesterInput) {
+                $nowYear = now()->year;
+                if ($semesterInput === 'Ganjil') {
+                    $start = Carbon::create($nowYear, 7, 1)->startOfDay();
+                    $end = Carbon::create($nowYear, 12, 31)->endOfDay();
+                } elseif ($semesterInput === 'Genap') {
+                    $start = Carbon::create($nowYear, 1, 1)->startOfDay();
+                    $end = Carbon::create($nowYear, 6, 30)->endOfDay();
+                }
+            }
+
+            // Terapkan filter waktu
+            if (isset($start) && isset($end)) {
+                $query->whereBetween('created_at', [$start, $end]);
+            }
         }
 
         $transaksiKas = $query->get();

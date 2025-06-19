@@ -34,7 +34,7 @@
         @endif
 
         <input type="text" name="search" value="{{ request()->get('search') }}"
-            class="border border-gray-300 rounded px-4 py-2 w-64" placeholder="Cari nama siswa...">
+            class="border border-gray-300 rounded px-4 py-2 w-52" placeholder="Cari nama siswa...">
 
         <select name="unit" class="border border-gray-300 rounded px-4 py-2">
             <option value="">Semua Unit</option>
@@ -62,6 +62,29 @@
             <option value="Pindah" {{ request('status') == 'Pindah' ? 'selected' : '' }}>Pindah</option>
             <option value="Drop Out" {{ request('status') == 'Drop Out' ? 'selected' : '' }}>Drop Out</option>
         </select>
+
+        <!-- Filter Tanggal -->
+<input type="date" name="tanggal_awal" class="border border-gray-300 rounded p-2 text-sm"
+       value="{{ request('tanggal_awal') }}">
+<span class="mx-1">s/d</span>
+<input type="date" name="tanggal_akhir" class="border border-gray-300 rounded p-2 text-sm"
+       value="{{ request('tanggal_akhir') }}">
+
+                 <select name="tahun_ajaran" class="border border-gray-300 rounded px-4 py-2">
+                  <option value="">Pilih Tahun</option>
+                        @for ($i = now()->year + 1; $i >= 2024; $i--)
+                            <option value="{{ $i }}" {{ request('tahun_ajaran') == $i ? 'selected' : '' }}>
+                                {{ $i }}/{{ $i+1 }}
+                            </option>
+                        @endfor
+                    </select>
+
+                    <select name="semester" class="border border-gray-300 rounded px-4 py-2 w-52">
+                        <option value="">Pilih Semester</option>
+                        <option value="Ganjil" {{ request('semester') == 'Ganjil' ? 'selected' : '' }}>Ganjil (Jul–Des)</option>
+                        <option value="Genap" {{ request('semester') == 'Genap' ? 'selected' : '' }}>Genap (Jan–Jun)</option>
+                    </select>
+
 
         <div class="flex gap-2">
             <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
@@ -107,6 +130,8 @@
                                 <th class="py-2 px-4 border-r">Unit</th>
                                 <th class="py-2 px-4 border-r">Kelas</th>
                                 <th class="py-2 px-4 border-r">Setoran Awal</th>
+                                <th class="py-2 px-4 border-r">Total Setoran</th>
+                                <th class="py-2 px-4 border-r">Total Penarikan</th>
                                 <th class="py-2 px-4 border-r">Saldo Akhir</th>
                                 <th class="py-2 px-4 border-r">Created By</th>
                                 @if(request()->get('trashed'))
@@ -129,6 +154,8 @@
                                     <td class="py-2 px-4 border-r">{{ $tabungan->siswa->kelas->unitpendidikan->namaUnit ?? '-' }}</td>
                                     <td class="py-2 px-4 border-r">{{ $tabungan->siswa->kelas->nama_kelas ?? '-' }}</td>
                                     <td class="py-2 px-4 border-r">Rp {{ number_format($tabungan->saldo_awal, 0, ',', '.') }}</td>
+                                    <td class="py-2 px-4 border-r">Rp {{ number_format($tabungan->total_setoran ?? 0, 0, ',', '.') }}</td>
+                                    <td class="py-2 px-4 border-r">Rp {{ number_format($tabungan->total_penarikan ?? 0, 0, ',', '.') }}</td>
                                     <td class="py-2 px-4 border-r">Rp {{ number_format($tabungan->saldo_akhir, 0, ',', '.') }}</td>
                                     <td class="py-2 px-4 border-b">{{ $tabungan->created_by }}</td>
                                     @if(request()->get('trashed'))

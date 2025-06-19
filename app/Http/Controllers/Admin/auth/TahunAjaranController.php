@@ -9,11 +9,13 @@ use Illuminate\Support\Facades\Log;
 
 class TahunAjaranController extends Controller
 {
-    function createTahunAjaran () {
+    function createTahunAjaran()
+    {
         return view("admin.create-tahun-ajaran");
     }
 
-    function submitTahunAjaran (Request $request) {
+    function submitTahunAjaran(Request $request)
+    {
         // Validasi input
         $request->validate([
             'tahun_ajaran' => 'required|string',
@@ -23,28 +25,26 @@ class TahunAjaranController extends Controller
         $tahunajaran = new TahunAjaran();
         $tahunajaran->tahun_ajaran = $request->tahun_ajaran;
         $tahunajaran->awal = $request->awal;
-        $tahunajaran->akhir = $request->akhir; 
+        $tahunajaran->akhir = $request->akhir;
         $tahunajaran->status = $request->status;
-        // Cek Tahun Ajaran apakah sudah ada
-if (TahunAjaran::where('tahun_ajaran', $request->tahun_ajaran)->exists()) {
-    return redirect()->back()->withErrors(['tahun_ajaran' => 'Tahun Ajaran telah digunakan.'])->withInput();
-}
 
-// Cek Tahun Awal apakah sudah ada
-if (TahunAjaran::where('awal', $request->awal)->exists()) {
-    return redirect()->back()->withErrors(['awal' => 'Tahun Awal telah digunakan.'])->withInput();
-}
+        // Cek Tahun Awal apakah sudah ada
+        if (TahunAjaran::where('awal', $request->awal)->exists()) {
+            return redirect()->back()->withErrors(['awal' => 'Tahun Awal telah digunakan.'])->withInput();
+        }
         $tahunajaran->save();
 
         return redirect()->route('admin.manage-tahun-ajaran')->with('success', 'Tahun ajaran berhasil ditambah.');
     }
 
-    function editTahunAjaran ($id) {
+    function editTahunAjaran($id)
+    {
         $tahunajaran = TahunAjaran::find($id);
         return view('admin.edit-tahun-ajaran', compact('tahunajaran'));
     }
-    
-    function updateTahunAjaran (Request $request, $id) {
+
+    function updateTahunAjaran(Request $request, $id)
+    {
         $tahunajaran = TahunAjaran::findOrFail($id);
 
         // Validasi input
@@ -57,23 +57,19 @@ if (TahunAjaran::where('awal', $request->awal)->exists()) {
         $tahunajaran->awal = $request->awal;
         $tahunajaran->akhir = $request->akhir;
         $tahunajaran->status = $request->status;
-        // Cek Tahun Ajaran (tidak boleh sama kecuali milik ID yang sedang diedit)
-if (TahunAjaran::where('tahun_ajaran', $request->tahun_ajaran)->where('id', '!=', $id)->exists()) {
-    return redirect()->back()->withErrors(['tahun_ajaran' => 'Tahun Ajaran telah digunakan.'])->withInput();
-}
 
-// Cek Tahun Awal
-if (TahunAjaran::where('awal', $request->awal)->where('id', '!=', $id)->exists()) {
-    return redirect()->back()->withErrors(['awal' => 'Tahun Awal telah digunakan.'])->withInput();
-}
+        // Cek Tahun Awal
+        if (TahunAjaran::where('awal', $request->awal)->where('id', '!=', $id)->exists()) {
+            return redirect()->back()->withErrors(['awal' => 'Tahun Awal telah digunakan.'])->withInput();
+        }
 
         $tahunajaran->update();
 
         return redirect()->route('admin.manage-tahun-ajaran')->with('success', 'Tahun ajaran berhasil diperbarui.');
-
     }
 
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         $query = TahunAjaran::query();
 
         // Ambil filter status dari request (default: "Semua")
