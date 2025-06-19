@@ -81,6 +81,13 @@
 </form> --}}
 <form method="GET" class="flex gap-2 items-center mb-4">
 
+        <!-- Semester -->
+    <select name="semester" class="border border-gray-300 rounded px-4 py-2">
+        <option value="">Pilih Semester</option>
+        <option value="Ganjil" {{ request('semester') == 'Ganjil' ? 'selected' : '' }}>Ganjil (Jul–Des)</option>
+        <option value="Genap" {{ request('semester') == 'Genap' ? 'selected' : '' }}>Genap (Jan–Jun)</option>
+    </select>
+
     <!-- Tahun Ajaran -->
     <select name="tahun" class="border border-gray-300 rounded px-4 py-2">
         <option value="">Pilih Tahun Ajaran</option>
@@ -89,13 +96,6 @@
                 {{ $i }}/{{ $i + 1 }}
             </option>
         @endfor
-    </select>
-
-    <!-- Semester -->
-    <select name="semester" class="border border-gray-300 rounded px-4 py-2">
-        <option value="">Pilih Semester</option>
-        <option value="Ganjil" {{ request('semester') == 'Ganjil' ? 'selected' : '' }}>Ganjil (Jul–Des)</option>
-        <option value="Genap" {{ request('semester') == 'Genap' ? 'selected' : '' }}>Genap (Jan–Jun)</option>
     </select>
 
     <!-- Bulan -->

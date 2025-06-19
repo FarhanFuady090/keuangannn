@@ -36,7 +36,7 @@
 <input type="text" name="search" value="{{ request()->get('search') }}"
     class="border border-gray-300 rounded px-4 py-2 w-[350px]" placeholder="Cari nama siswa...">
 
-        <select name="unit" class="border border-gray-300 rounded px-4 py-2 w-[182px]">
+        <select name="unit" class="border border-gray-300 rounded px-4 py-2 w-[172px]">
             <option value="">Semua Unit</option>
             @foreach ($units as $unit)
                 <option value="{{ $unit->id }}" {{ request('unit') == $unit->id ? 'selected' : '' }}>
@@ -45,7 +45,7 @@
             @endforeach
         </select>
 
-        <select name="kelas" class="border border-gray-300 rounded px-4 py-2">
+        <select name="kelas" class="border border-gray-300 rounded px-4 py-2 w-[179px]">
             <option value="">Semua Kelas</option>
             @foreach ($kelasList as $kelas)
                 <option value="{{ $kelas->id }}" {{ request('kelas') == $kelas->id ? 'selected' : '' }}>
@@ -89,8 +89,13 @@
         </option>
     @endfor
 </select>
+                    <select name="semester" class="border border-gray-300 rounded px-4 py-2 w-[170px]">
+                        <option value="">Pilih Semester</option>
+                        <option value="Ganjil" {{ request('semester') == 'Ganjil' ? 'selected' : '' }}>Ganjil (Jul–Des)</option>
+                        <option value="Genap" {{ request('semester') == 'Genap' ? 'selected' : '' }}>Genap (Jan–Jun)</option>
+                    </select>
 
-                 <select name="tahun_ajaran" class="border border-gray-300 rounded px-4 py-2 w-[180px]">
+                 <select name="tahun_ajaran" class="border border-gray-300 rounded px-4 py-2 w-[179px]">
                   <option value="">Pilih Tahun Ajaran</option>
                         @for ($i = now()->year + 1; $i >= 2024; $i--)
                             <option value="{{ $i }}" {{ request('tahun_ajaran') == $i ? 'selected' : '' }}>
@@ -98,13 +103,6 @@
                             </option>
                         @endfor
                     </select>
-
-                    <select name="semester" class="border border-gray-300 rounded px-4 py-2 w-[170px]">
-                        <option value="">Pilih Semester</option>
-                        <option value="Ganjil" {{ request('semester') == 'Ganjil' ? 'selected' : '' }}>Ganjil (Jul–Des)</option>
-                        <option value="Genap" {{ request('semester') == 'Genap' ? 'selected' : '' }}>Genap (Jan–Jun)</option>
-                    </select>
-
 
         <div class="flex gap-2">
             <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">

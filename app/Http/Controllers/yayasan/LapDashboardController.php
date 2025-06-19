@@ -84,34 +84,59 @@ class LapDashboardController extends Controller
         $keuanganPerUnit = collect();
 
 
-        $bulanInput = $request->input('bulan');       // ex: 1-12
-        $tahunInput = $request->input('tahun');       // ex: 2025
-        $semesterInput = $request->input('semester'); // 'Ganjil' or 'Genap'
+        $tahunAjaran = $request->input('tahun_ajaran'); // tahun ajaran akademik
+        $semester = $request->input('semester');
+        $tahun = $request->input('tahun'); // tahun biasa
+        $bulan = $request->input('bulan');
 
-        if ($bulanInput && !$tahunInput) {
+
+        if ($bulan && !$tahun) {
             return back()->with('error', 'Silakan pilih tahun jika ingin memfilter berdasarkan bulan.');
         }
 
         $tanggalMulai = null;
         $tanggalSelesai = null;
 
-        if ($tahunInput && $semesterInput) {
-            if ($semesterInput === 'Ganjil') {
-                $tanggalMulai = Carbon::create($tahunInput, 7, 1)->startOfDay();
-                $tanggalSelesai = Carbon::create($tahunInput, 12, 31)->endOfDay();
-            } elseif ($semesterInput === 'Genap') {
-                $tanggalMulai = Carbon::create($tahunInput + 1, 1, 1)->startOfDay();
-                $tanggalSelesai = Carbon::create($tahunInput + 1, 6, 30)->endOfDay();
+        // Prioritaskan filter Tahun Ajaran
+        if ($tahunAjaran) {
+            if ($semester === 'Ganjil') {
+                $tanggalMulai = Carbon::create($tahunAjaran, 7, 1)->startOfDay();
+                $tanggalSelesai = Carbon::create($tahunAjaran, 12, 31)->endOfDay();
+            } elseif ($semester === 'Genap') {
+                $tanggalMulai = Carbon::create($tahunAjaran + 1, 1, 1)->startOfDay();
+                $tanggalSelesai = Carbon::create($tahunAjaran + 1, 6, 30)->endOfDay();
+            } else {
+                // Jika semester tidak diisi → anggap 1 Tahun Ajaran penuh (Juli s/d Juni tahun berikutnya)
+                $tanggalMulai = Carbon::create($tahunAjaran, 7, 1)->startOfDay();
+                $tanggalSelesai = Carbon::create($tahunAjaran + 1, 6, 30)->endOfDay();
             }
-        } elseif ($tahunInput && $bulanInput) {
-            // Hanya bulan & tahun
-            $tanggalMulai = Carbon::create($tahunInput, $bulanInput, 1)->startOfMonth();
-            $tanggalSelesai = Carbon::create($tahunInput, $bulanInput, 1)->endOfMonth();
-        } elseif ($tahunInput && !$semesterInput && !$bulanInput) {
-            // Hanya tahun saja
-            $tanggalMulai = Carbon::create($tahunInput, 1, 1)->startOfDay();
-            $tanggalSelesai = Carbon::create($tahunInput, 12, 31)->endOfDay();
         }
+        // Jika hanya semester saja
+        elseif ($semester && !$tahun && !$tahunAjaran) {
+            $now = now()->year;
+            if ($semester === 'Ganjil') {
+                $tanggalMulai = Carbon::create($now, 7, 1)->startOfDay();
+                $tanggalSelesai = Carbon::create($now, 12, 31)->endOfDay();
+            } elseif ($semester === 'Genap') {
+                $tanggalMulai = Carbon::create($now, 1, 1)->startOfDay();
+                $tanggalSelesai = Carbon::create($now, 6, 30)->endOfDay();
+            }
+        }
+        // Jika bulan dan tahun biasa
+        elseif ($bulan && $tahun) {
+            $tanggalMulai = Carbon::create($tahun, $bulan, 1)->startOfMonth();
+            $tanggalSelesai = Carbon::create($tahun, $bulan, 1)->endOfMonth();
+        }
+        // Jika hanya bulan saja → tampilkan error
+        elseif ($bulan && !$tahun) {
+            return back()->with('error', 'Silakan pilih tahun jika ingin memfilter berdasarkan bulan.');
+        }
+        // Jika hanya tahun biasa saja
+        elseif ($tahun && !$bulan) {
+            $tanggalMulai = Carbon::create($tahun, 1, 1)->startOfDay();
+            $tanggalSelesai = Carbon::create($tahun, 12, 31)->endOfDay();
+        }
+
 
 
         foreach ($allUnits as $unit) {
