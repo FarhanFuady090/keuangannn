@@ -4,7 +4,6 @@
     </x-slot>
 
     <div class="p-6 max-w-7xl mx-auto">
-        {{-- Judul Halaman --}}
         <h4 class="text-xl font-semibold text-gray-700 mb-6">Daftar Siswa</h4>
 
         {{-- Filter Form --}}
@@ -35,6 +34,15 @@
             </div>
         </form>
 
+        <form method="GET" action="{{ route('tupusat.tagihan.export-all') }}">
+            <input type="hidden" name="unit" value="{{ request('unit') }}">
+            <input type="hidden" name="kelas" value="{{ request('kelas') }}">
+            <button type="submit"
+                class="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition">
+                Download Excel
+            </button>
+        </form>
+
         {{-- Script untuk Delay Submit pada Search --}}
         <script>
             let typingTimer;
@@ -46,7 +54,6 @@
             }
         </script>
 
-        {{-- Tabel Daftar Siswa --}}
         <div class="overflow-x-auto rounded-lg shadow-lg border border-gray-200">
             <table class="min-w-full bg-white text-sm">
                 <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
@@ -77,18 +84,17 @@
             </table>
         </div>
 
-        {{-- Pagination --}}
         <div class="mt-6">
             {{ $siswas->appends(request()->query())->links() }}
         </div>
     </div>
 
-    {{-- Skrip untuk Dynamic Load Kelas Berdasarkan Unit --}}
-    @push('scripts')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
         $(document).ready(function () {
             function loadKelas(unitId, selectedKelas = null) {
-                $('#kelas').empty().append('<option value="">-- Pilih Kelas --</option>');
+                $('#kelas').empty().append('<option value="">-- Semua Kelas --</option>');
                 if (unitId) {
                     $.get("{{ route('tupusat.api.kelas') }}", { unit_id: unitId }, function (data) {
                         if (data.length === 0) return;
@@ -103,13 +109,16 @@
             $('#unit').change(function () {
                 const unitId = $(this).val();
                 loadKelas(unitId);
+                $('#filterForm').submit();
             });
 
-            // Load kelas saat halaman di-load jika ada filter unit & kelas
+            $('#kelas').change(function () {
+                $('#filterForm').submit();
+            });
+
             @if(request('unit'))
                 loadKelas('{{ request('unit') }}', '{{ request('kelas') ?? '' }}');
             @endif
         });
     </script>
-    @endpush
 </x-layout-tupusat>

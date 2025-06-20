@@ -78,7 +78,7 @@ class TabunganController extends Controller
         $units = \App\Models\UnitPendidikan::all();
         $kelasList = \App\Models\Kelas::all();
 
-        return view('tupusat.tabungan.index', compact('tabungan', 'tabungans', 'units', 'kelasList'));
+        return view('tupusat.tabungan.index', compact('tabungans', 'units', 'kelasList'));
     }
 
 

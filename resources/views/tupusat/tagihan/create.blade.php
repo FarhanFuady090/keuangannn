@@ -26,6 +26,18 @@
                         @endforeach
                     </select>
                 </div>
+                <div>
+                    <label for="kelas" class="block mb-1 text-sm font-medium text-gray-700">Kelas</label>
+                    <select name="kelas" id="kelas"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-500">
+                        <option value="">-- Pilih Kelas --</option>
+                        @foreach($kelasList as $kelas)
+                            <option value="{{ $kelas->id }}" {{ ($selectedKelas == $kelas->id) ? 'selected' : '' }}>
+                                {{ $kelas->nama_kelas }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <div>
                     <label for="tahun" class="block mb-1 text-sm font-medium text-gray-700">Tahun Ajaran</label>
@@ -62,7 +74,7 @@
                     required>
                     <option value="">-- Pilih Jenis --</option>
                     @foreach($jenisPembayaran as $jenis)
-                        <option value="{{ $jenis->id }}">{{ $jenis->nama_pembayaran }} ({{ $jenis->type }})</option>
+                        <option value="{{ $jenis->id }}">{{ $jenis->nama_pembayaran }} ({{ $jenis->type }}) - Rp {{ number_format($jenis->nominal_jenispembayaran, 0, ',', '.') }}</option>
                     @endforeach
                 </select>
             </div>
@@ -71,18 +83,26 @@
                 <table class="min-w-full table-auto text-sm" id="siswa-table">
                     <thead class="bg-gray-100 text-left text-gray-700">
                         <tr>
+                            <th class="px-4 py-3 font-semibold">
+                                <input type="checkbox" id="select-all" class="form-checkbox">
+                            </th>
                             <th class="px-4 py-3 font-semibold">Nama Siswa</th>
                             <th class="px-4 py-3 font-semibold">NIS</th>
+                            <th class="px-4 py-3 font-semibold">Kelas</th>
                             <th class="px-4 py-3 font-semibold">Nominal Tagihan (Rp)</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($siswaList as $siswa)
                             <tr>
+                                <td class="px-4 py-2">
+                                    <input type="checkbox" name="siswa_ids[]" value="{{ $siswa->id }}" class="siswa-checkbox">
+                                </td>
                                 <td class="px-4 py-2">{{ $siswa->nama }}</td>
                                 <td class="px-4 py-2">{{ $siswa->nis }}</td>
+                                <td class="px-4 py-2">{{ $siswa->kelas->nama_kelas ?? '-' }}</td>
                                 <td class="px-4 py-2">
-                                <input type="number"
+                                <input type="hidden"
                                     name="tagihan[{{ $siswa->id }}]"
                                     class="nominal-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-500"
                                     value="{{ old('tagihan.' . $siswa->id, optional($jenisPembayaran->first())->nominal_jenispembayaran ?? '') }}"
@@ -91,7 +111,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="text-center px-4 py-3 text-gray-500">Belum ada data siswa</td>
+                                <td colspan="4" class="text-center px-4 py-3 text-gray-500">Belum ada data siswa</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -109,7 +129,8 @@
         </form>
     </div>
 
-    @push('scripts')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
         $(document).ready(function () {
             function loadJenisPembayaran(unitId, tahunId) {
@@ -125,8 +146,13 @@
                 });
             }
 
-            function loadSiswa(unitId) {
-                $.get("{{ route('tupusat.api.siswa') }}", { unit_id: unitId }, function (data) {
+            function loadSiswa(unitId, kelasId = null) {
+                let params = { unit_id: unitId };
+                if (kelasId) {
+                    params.kelas_id = kelasId;
+                }
+
+                $.get("{{ route('tupusat.api.siswa') }}", params, function (data) {
                     let $tbody = $('#siswa-table tbody');
                     $tbody.empty();
                     if (data.length === 0) {
@@ -147,6 +173,17 @@
                         `);
                     });
                 });
+
+                function loadKelas(unitId, selectedKelas = null) {
+                    $.get("{{ route('tupusat.api.kelas') }}", { unit_id: unitId }, function(data) {
+                        let $kelasSelect = $('#kelas');
+                        $kelasSelect.empty().append('<option value="">-- Pilih Kelas --</option>');
+                        data.forEach(kelas => {
+                            let selected = (kelas.id == selectedKelas) ? 'selected' : '';
+                            $kelasSelect.append(`<option value="${kelas.id}" ${selected}>${kelas.nama_kelas}</option>`);
+                        });
+                    });
+                }
             }
 
             $('#unit, #tahun').change(function () {
@@ -156,14 +193,25 @@
 
                 if (unitId && tahunId) {
                     loadJenisPembayaran(unitId, tahunId);
+                    loadKelas(unitId);
                     loadSiswa(unitId);
                 }
             });
 
             $(document).ready(function () {
-                function updateNominalInputs(nominal) {
-                    $('.nominal-input').val(nominal);
-                }
+                // Select All checkbox logic
+                $('#select-all').on('change', function () {
+                    var isChecked = $(this).prop('checked');
+                    $('.siswa-checkbox').prop('checked', isChecked);  // Check/uncheck all siswa checkboxes
+                });
+
+                // Check if all siswa checkboxes are selected, and update the "Select All" checkbox accordingly
+                $('.siswa-checkbox').on('change', function () {
+                    var allChecked = $('.siswa-checkbox').length === $('.siswa-checkbox:checked').length;
+                    $('#select-all').prop('checked', allChecked);
+                });
+
+                // Update nominal inputs when jenis pembayaran changes
                 $('#jenis_pembayaran_id').on('change', function () {
                     let jenisId = $(this).val();
                     if (!jenisId) return;
@@ -174,15 +222,12 @@
                             $('#preview-nominal').text("Nominal per siswa: Rp " + new Intl.NumberFormat('id-ID').format(data.nominal));
                         }
                     });
-                });
 
                 function updateNominalInputs(nominal) {
                     $('.nominal-input').val(nominal);
                 }
-
+                });
             });
-
         });
     </script>
-    @endpush
 </x-layout-tupusat>

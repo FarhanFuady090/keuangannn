@@ -46,6 +46,7 @@
 
     <p><strong>Total Tagihan:</strong> Rp {{ number_format($totalTagihan, 0, ',', '.') }}</p>
     <p><strong>Total Dibayar:</strong> Rp {{ number_format($totalDibayar, 0, ',', '.') }}</p>
+    <p><strong>Sisa Tagihan:</strong> Rp {{ number_format($sisaTagihan, 0, ',', '.') }}</p>
 
     <br><br>
     <p style="text-align:right;">Tanggal Cetak: {{ now()->format('d-m-Y') }}</p>

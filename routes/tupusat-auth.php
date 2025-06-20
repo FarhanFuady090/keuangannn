@@ -45,6 +45,7 @@ Route::prefix('tupusat')->middleware('auth:tupusat', 'verified')->group(function
     Route::get('/api/kelas', [TagihanController::class, 'getKelasByUnit'])->name('tupusat.api.kelas');
     // Daftar Siswa
     Route::get('/tagihan-siswa', [TagihanController::class, 'index'])->name('tupusat.tagihan-siswa.index');
+    Route::get('/tagihan/export-all', [TagihanController::class, 'exportAll'])->name('tupusat.tagihan.export-all');
     // Cetak
     Route::get('/tagihan/{siswa}/cetak', [TagihanController::class, 'cetak'])->name('tupusat.tagihan.cetak');
     // Rincian Tagihan Siswa

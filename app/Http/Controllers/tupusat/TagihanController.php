@@ -12,6 +12,7 @@ use App\Models\Tagihan;
 use App\Models\Kelas;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\TagihanExport; // This will be the custom export class
+use App\Exports\TagihanSiswaExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Response;
 
@@ -57,8 +58,15 @@ class TagihanController extends Controller
 
         $selectedUnit = $request->get('unit');
         $selectedTahun = $request->get('tahun');
+        $selectedKelas = $request->get('kelas');
+
         $jenisPembayaran = [];
         $siswaList = [];
+        $kelasList = collect();
+
+        if ($selectedUnit) {
+            $kelasList = Kelas::where('unitpendidikan_id', $selectedUnit)->get();
+        }
 
         if ($selectedUnit && $selectedTahun) {
             $jenisPembayaran = JenisPembayaran::where('idunitpendidikan', $selectedUnit)
@@ -66,9 +74,14 @@ class TagihanController extends Controller
                 ->where('status', 'Aktif')
                 ->get();
 
-            $siswaList = Siswa::where('unitpendidikan_id', $selectedUnit)
-                ->where('status', 'Aktif')
-                ->get();
+            $query = Siswa::where('unitpendidikan_id', $selectedUnit)
+                ->where('status', 'Aktif');
+
+            if ($selectedKelas) {
+                $query->where('kelas_id', $selectedKelas);
+            }
+
+            $siswaList = $query->get();
         }
 
         return view('tupusat.tagihan.create', compact(
@@ -76,8 +89,10 @@ class TagihanController extends Controller
             'tahunAjaran',
             'jenisPembayaran',
             'siswaList',
+            'kelasList',
             'selectedUnit',
-            'selectedTahun'
+            'selectedTahun',
+            'selectedKelas'
         ));
     }
 
@@ -86,7 +101,8 @@ class TagihanController extends Controller
         $request->validate([
             'jenis_pembayaran_id' => 'required|exists:jenispembayaran,id',
             'tahun_ajaran_id' => 'required|exists:tahunajaran,id',
-            'tagihan' => 'required|array', // format: [siswa_id => nominal]
+            'siswa_ids' => 'required|array|min:1', // Pastikan ada minimal 1 siswa yang dipilih
+            'siswa_ids.*' => 'exists:siswas,id',  // Validasi setiap siswa ID yang dipilih
         ]);
 
         $jenisPembayaran = JenisPembayaran::findOrFail($request->jenis_pembayaran_id);
@@ -107,55 +123,57 @@ class TagihanController extends Controller
             'Desember'
         ];
 
-        $nominal = $jenisPembayaran->nominal_jenispembayaran; // overwrite manual input
+        $nominal = $jenisPembayaran->nominal_jenispembayaran; // nominal pembayaran
 
-        foreach ($request->tagihan as $siswaId => $inputNominal) {
-            if ($nominal <= 0) continue;
+        // Proses tagihan hanya untuk siswa yang dipilih
+        foreach ($request->siswa_ids as $siswaId) {
+            foreach ($request->tagihan as $siswaTagihanId => $inputNominal) {
+                if ($siswaId == $siswaTagihanId && $nominal > 0) {
+                    switch ($type) {
+                        case 'Bulanan':
+                            foreach ($bulanMap as $bulan) {
+                                Tagihan::create([
+                                    'siswa_id' => $siswaId,
+                                    'jenis_pembayaran_id' => $jenisPembayaran->id,
+                                    'tahun_ajaran_id' => $request->tahun_ajaran_id,
+                                    'bulan' => $bulan,
+                                    'nominal' => $nominal,
+                                    'jumlah_dibayar' => 0,
+                                    'status' => 'belum'
+                                ]);
+                            }
+                            break;
 
-            switch ($type) {
-                case 'Bulanan':
-                    foreach ($bulanMap as $bulan) {
-                        Tagihan::create([
-                            'siswa_id' => $siswaId,
-                            'jenis_pembayaran_id' => $jenisPembayaran->id,
-                            'tahun_ajaran_id' => $request->tahun_ajaran_id,
-                            'bulan' => $bulan,
-                            'nominal' => $nominal,
-                            'jumlah_dibayar' => 0,
-                            'status' => 'belum'
-                        ]);
+                        case 'Semester':
+                            foreach (['Semester 1', 'Semester 2'] as $semesterBulan) {
+                                Tagihan::create([
+                                    'siswa_id' => $siswaId,
+                                    'jenis_pembayaran_id' => $jenisPembayaran->id,
+                                    'tahun_ajaran_id' => $request->tahun_ajaran_id,
+                                    'bulan' => $semesterBulan,
+                                    'nominal' => $nominal,
+                                    'jumlah_dibayar' => 0,
+                                    'status' => 'belum'
+                                ]);
+                            }
+                            break;
+
+                        case 'Tahunan':
+                        case 'Bebas':
+                            Tagihan::create([
+                                'siswa_id' => $siswaId,
+                                'jenis_pembayaran_id' => $jenisPembayaran->id,
+                                'tahun_ajaran_id' => $request->tahun_ajaran_id,
+                                'bulan' => null,
+                                'nominal' => $nominal,
+                                'jumlah_dibayar' => 0,
+                                'status' => 'belum'
+                            ]);
+                            break;
                     }
-                    break;
-
-                case 'Semester':
-                    foreach (['Semester 1', 'Semester 2'] as $semesterBulan) {
-                        Tagihan::create([
-                            'siswa_id' => $siswaId,
-                            'jenis_pembayaran_id' => $jenisPembayaran->id,
-                            'tahun_ajaran_id' => $request->tahun_ajaran_id,
-                            'bulan' => $semesterBulan,
-                            'nominal' => $nominal,
-                            'jumlah_dibayar' => 0,
-                            'status' => 'belum'
-                        ]);
-                    }
-                    break;
-
-                case 'Tahunan':
-                case 'Bebas':
-                    Tagihan::create([
-                        'siswa_id' => $siswaId,
-                        'jenis_pembayaran_id' => $jenisPembayaran->id,
-                        'tahun_ajaran_id' => $request->tahun_ajaran_id,
-                        'bulan' => null,
-                        'nominal' => $nominal,
-                        'jumlah_dibayar' => 0,
-                        'status' => 'belum'
-                    ]);
-                    break;
+                }
             }
         }
-
 
         return redirect()->route('tupusat.tagihan.create')->with('success', 'Tagihan berhasil dibuat.');
     }
@@ -187,10 +205,6 @@ class TagihanController extends Controller
 
         return view('tupusat.tagihan.show', compact('siswa', 'tagihans', 'jenisPembayaranList'));
     }
-
-
-
-
 
     // Form bayar tagihan
     public function formBayar(Tagihan $tagihan)
@@ -234,10 +248,16 @@ class TagihanController extends Controller
     public function getSiswa(Request $request)
     {
         $unitId = $request->query('unit_id');
+        $kelasId = $request->query('kelas_id');
 
-        $data = Siswa::where('unitpendidikan_id', $unitId)
-            ->where('status', 'Aktif')
-            ->get(['id', 'nama', 'nis']);
+        $query = Siswa::where('unitpendidikan_id', $unitId)
+            ->where('status', 'Aktif');
+
+        if ($kelasId) {
+            $query->where('kelas_id', $kelasId);
+        }
+
+        $data = $query->get(['id', 'nama', 'nis', 'kelas_id']);
 
         return response()->json($data);
     }
@@ -257,8 +277,9 @@ class TagihanController extends Controller
 
         $totalTagihan = $tagihans->sum('nominal');
         $totalDibayar = $tagihans->sum('jumlah_dibayar');
+        $sisaTagihan = $totalTagihan - $totalDibayar;
 
-        $pdf = Pdf::loadView('tupusat.tagihan.cetak', compact('siswa', 'tagihans', 'totalTagihan', 'totalDibayar'))
+        $pdf = Pdf::loadView('tupusat.tagihan.cetak', compact('siswa', 'tagihans', 'totalTagihan', 'totalDibayar', 'sisaTagihan'))
             ->setPaper('A4', 'portrait');
 
         return $pdf->stream("Kwitansi_{$siswa->nama}.pdf");
@@ -337,5 +358,24 @@ class TagihanController extends Controller
             ->get();
 
         return Excel::download(new TagihanExport($tagihans), 'tagihan_siswa.xlsx');
+    }
+    public function exportAll(Request $request)
+    {
+        $unit = $request->get('unit');
+        $kelas = $request->get('kelas');
+
+        $query = Siswa::with(['kelas', 'unitPendidikan', 'tagihan']);
+
+        if ($unit) {
+            $query->where('unitpendidikan_id', $unit);
+        }
+
+        if ($kelas) {
+            $query->where('kelas_id', $kelas);
+        }
+
+        $siswas = $query->get();
+
+        return Excel::download(new TagihanSiswaExport($siswas), 'daftar_tagihan_siswa.xlsx');
     }
 }
