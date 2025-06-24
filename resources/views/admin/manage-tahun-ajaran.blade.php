@@ -56,7 +56,7 @@
         <option value="10" {{ request('entries', 10) == 10 ? 'selected' : '' }}>10</option>
         <option value="20" {{ request('entries', 10) == 20 ? 'selected' : '' }}>20</option>
         <option value="30" {{ request('entries', 10) == 30 ? 'selected' : '' }}>30</option>
-        <option value="1" {{ request('entries', 10) == 1 ? 'selected' : '' }}>1</option>
+        <option value="50" {{ request('entries', 10) == 50 ? 'selected' : '' }}>50</option>
     </select>
     <label class="text-sm" for="entries">entries</label>
 

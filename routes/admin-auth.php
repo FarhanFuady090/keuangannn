@@ -15,7 +15,7 @@ use App\Http\Controllers\AdminProfileController;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/dashboard', action: [DashboardController::class, 'showUser'])->name('admin.dashboard')->middleware(['auth:admin', 'verified']);
+Route::get('/dashboard', action: [DashboardController::class, 'showUser'])->name(name: 'admin.dashboard')->middleware(['auth:admin', 'verified']);
 Route::get('/dashboard', function () {
     return redirect('/admin/dashboard');
 });
@@ -88,14 +88,19 @@ Route::prefix('admin')->middleware('auth:admin', 'verified')->group(function () 
     });
 
     Route::middleware('auth')->group(function () {
-        Route::get('/create-jenis-pembayaran', action: [JenisPembayaranController::class, 'create'])->name('admin.create-jenis-pembayaran');
-        Route::get('/manage-jenis-pembayaran', action: [JenisPembayaranController::class, 'showData'])->name('admin.manage-jenis-pembayaran');
-        Route::post('/jenis-pembayaran', action: [JenisPembayaranController::class, 'submit'])->name('admin.submit');
-        Route::get('/admin/search', [JenisPembayaranController::class, 'search']);
-        Route::get('/admin/filter-jenis-pembayaran', [JenisPembayaranController::class, 'filterData'])->name('admin.filter-jenis-pembayaran');
-        Route::post('/create-jenis-pembayaran', action: [JenisPembayaranController::class, 'store'])->name('admin.create-jenis-pembayaran-submit');
+        // Tampilkan halaman data awal (dengan pagination)
+        Route::get('/manage-jenis-pembayaran', [JenisPembayaranController::class, 'index'])->name('admin.manage-jenis-pembayaran');
+    
+        // Form tambah data
+        Route::get('/create-jenis-pembayaran', [JenisPembayaranController::class, 'create'])->name('admin.create-jenis-pembayaran');
+    
+        // Proses simpan data
+        Route::post('/create-jenis-pembayaran', [JenisPembayaranController::class, 'store'])->name('admin.create-jenis-pembayaran-submit');
+    
+        // Form edit data
         Route::get('/edit-jenis-pembayaran/{id}', [JenisPembayaranController::class, 'editData'])->name('admin.edit-jenis-pembayaran');
-
+    
+        // Proses update data
         Route::post('/update-jenis-pembayaran/{id}', [JenisPembayaranController::class, 'updateData'])->name('admin.update-jenis-pembayaran');
     });
 

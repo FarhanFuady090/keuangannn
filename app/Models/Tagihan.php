@@ -10,34 +10,35 @@ class Tagihan extends Model
     use HasFactory;
 
     protected $table = 'tagihan';
+
     protected $fillable = [
         'siswa_id',
-        'idjenispembayaran',
-        'id_tahunajaran',
+        'jenis_pembayaran_id',
+        'tahun_ajaran_id',
         'bulan',
         'nominal',
+        'jumlah_dibayar',
         'status',
         'tanggal_bayar',
     ];
 
-    /* ─── Relasi Eloquent ────────────────────────────────────────── */
-
-    // satu tagihan milik satu siswa
     public function siswa()
     {
         return $this->belongsTo(Siswa::class);
     }
 
-    // jenis pembayaran
     public function jenisPembayaran()
     {
-        return $this->belongsTo(JenisPembayaran::class, 'idjenispembayaran', 'idjenispembayaran');
+        return $this->belongsTo(JenisPembayaran::class, 'jenis_pembayaran_id');
     }
 
-
-    // tahun ajaran
     public function tahunAjaran()
     {
-        return $this->belongsTo(TahunAjaran::class, 'id_tahunajaran', 'id');
+        return $this->belongsTo(TahunAjaran::class, 'tahun_ajaran_id');
+    }
+
+    public function pembayaran()
+    {
+        return $this->hasMany(PembayaranTagihan::class);
     }
 }

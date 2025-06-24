@@ -102,16 +102,16 @@
                                 <td class="px-4 py-2">{{ $siswa->nis }}</td>
                                 <td class="px-4 py-2">{{ $siswa->kelas->nama_kelas ?? '-' }}</td>
                                 <td class="px-4 py-2">
-                                <input type="hidden"
-                                    name="tagihan[{{ $siswa->id }}]"
-                                    class="nominal-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-500"
+                                <input type="hidden" 
+                                    name="tagihan[{{ $siswa->id }}]" 
+                                    class="nominal-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-500" 
                                     value="{{ old('tagihan.' . $siswa->id, optional($jenisPembayaran->first())->nominal_jenispembayaran ?? '') }}"
                                     min="0" step="1000" placeholder="Nominal" readonly>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center px-4 py-3 text-gray-500">Belum ada data siswa</td>
+                                <td colspan="5" class="text-center px-4 py-3 text-gray-500">Belum ada data siswa</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -165,8 +165,8 @@
                                 <td class="px-4 py-2">${siswa.nama}</td>
                                 <td class="px-4 py-2">${siswa.nis}</td>
                                 <td class="px-4 py-2">
-                                    <input type="number" name="tagihan[${siswa.id}]"
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-500"
+                                    <input type="number" name="tagihan[${siswa.id}]" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-500" 
                                            min="0" step="1000" placeholder="Masukkan nominal">
                                 </td>
                             </tr>

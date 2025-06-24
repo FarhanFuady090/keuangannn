@@ -3,177 +3,126 @@
 namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
-use App\Models\JenisPembayaran; // Pastikan model diimpor
-use App\Models\TahunAjaran;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use App\Models\JenisPembayaran;
+use App\Models\TahunAjaran;
+use Illuminate\Auth\Events\Registered;
 
-class JenisPembayaranController extends Controller{
-    public function showData()
+class JenisPembayaranController extends Controller
+{
+    public function index(Request $request)
     {
-        $all_data = DB::table('jenispembayaran')
+        $unitId = $request->input('unitpendidikan');
+        $status = $request->input('status');
+        $perPage = $request->input('show', 10);
+
+        $query = DB::table('jenispembayaran')
+            ->join('unitpendidikan', 'jenispembayaran.idunitpendidikan', '=', 'unitpendidikan.id')
+            ->join('tahunajaran', 'jenispembayaran.id_tahunajaran', '=', 'tahunajaran.id')
+            ->select('jenispembayaran.*', 'unitpendidikan.namaUnit', 'tahunajaran.tahun_ajaran');
+
+        if ($unitId) {
+            $query->where('jenispembayaran.idunitpendidikan', '=', $unitId);
+        }
+
+        if ($status) {
+            $query->where('jenispembayaran.status', '=', $status);
+        }
+
+        $filtered_data = $query->paginate($perPage)->withQueryString();
+        $unitpendidikan = DB::table('unitpendidikan')->select('id', 'namaUnit')->get();
+
+        return view('admin.manage-jenis-pembayaran', compact('filtered_data', 'unitpendidikan', 'unitId', 'status', 'perPage'));
+    }
+
+    public function create()
+    {
+        $tahunAjaran = TahunAjaran::where('status', 'Aktif')->get(['tahun_ajaran', 'id']);
+        $unitpendidikan = DB::table('unitpendidikan')->get(['id', 'namaUnit']);
+
+        return view('admin.create-jenis-pembayaran', compact('tahunAjaran', 'unitpendidikan'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'nama_pembayaran' => 'required|string',
+            'type' => 'required|string',
+            'id_tahunajaran' => 'required|numeric',
+            'nominal_jenispembayaran' => 'required|numeric',
+            'status' => 'required|string',
+            'idunitpendidikan' => 'required|numeric',
+        ]);
+
+        // Cek duplikasi
+        $exists = JenisPembayaran::where([
+            ['nama_pembayaran', $validated['nama_pembayaran']],
+            ['type', $validated['type']],
+            ['id_tahunajaran', $validated['id_tahunajaran']],
+            ['nominal_jenispembayaran', $validated['nominal_jenispembayaran']],
+            ['status', $validated['status']],
+            ['idunitpendidikan', $validated['idunitpendidikan']],
+        ])->exists();
+
+        if ($exists) {
+            return redirect()->back()->withErrors('Data sudah ada! Silakan masukkan data yang berbeda.');
+        }
+
+        $jenispembayaran = JenisPembayaran::create($validated);
+
+        event(new Registered($jenispembayaran));
+
+        return redirect()->route('admin.manage-jenis-pembayaran')->with('success', 'Data berhasil ditambahkan!');
+    }
+
+    public function editData($id)
+    {
+        $jenispembayaran = DB::table('jenispembayaran')
             ->join('unitpendidikan', 'jenispembayaran.idunitpendidikan', '=', 'unitpendidikan.id')
             ->join('tahunajaran', 'jenispembayaran.id_tahunajaran', '=', 'tahunajaran.id')
             ->select(
+                'jenispembayaran.id',
                 'jenispembayaran.nama_pembayaran',
                 'jenispembayaran.type',
                 'tahunajaran.tahun_ajaran',
                 'jenispembayaran.nominal_jenispembayaran',
                 'jenispembayaran.status',
-                'unitpendidikan.namaUnit' // Tambahkan namaUnit dari unitpendidikan
+                'unitpendidikan.namaUnit',
+                'unitpendidikan.id as idunitpendidikan',
+                'jenispembayaran.id_tahunajaran'
             )
-            ->get(); // Mengambil semua data
-            $filtered_data = DB::table('jenispembayaran')
-    ->join('unitpendidikan', 'jenispembayaran.idunitpendidikan', '=', 'unitpendidikan.id')
-    ->join('tahunajaran', 'jenispembayaran.id_tahunajaran', '=', 'tahunajaran.id')
-    ->select('jenispembayaran.*', 'unitpendidikan.namaUnit','tahunajaran.tahun_ajaran')
-    ->paginate(10); // Atau sesuai default limit yang kamu mau
-    
-        return view('admin.manage-jenis-pembayaran', compact('all_data','filtered_data'));
+            ->where('jenispembayaran.id', '=', $id)
+            ->firstOrFail();
+
+        $unitpendidikan = DB::table('unitpendidikan')->get(['id', 'namaUnit']);
+        $tahunAjaran = TahunAjaran::where('status', 'Aktif')->get(['id', 'tahun_ajaran']);
+
+        return view('admin.edit-jenis-pembayaran', compact('jenispembayaran', 'unitpendidikan', 'tahunAjaran'));
     }
 
-   
-
-    public function filterData(Request $request)
+    public function updateData(Request $request, $id)
     {
-        $unitId = $request->input('unitpendidikan');
-        $status = $request->input('status');
-        $perPage = $request->input('show', 10); // Ambil limit, default 10
-    
-        $query = DB::table('jenispembayaran')
-            ->join('unitpendidikan', 'jenispembayaran.idunitpendidikan', '=', 'unitpendidikan.id')
-            ->join('tahunajaran', 'jenispembayaran.id_tahunajaran', '=', 'tahunajaran.id')
-            ->select('jenispembayaran.*', 'unitpendidikan.namaUnit', 'tahunajaran.tahun_ajaran');
-    
-        if (!empty($unitId)) {
-            $query->where('jenispembayaran.idunitpendidikan', '=', $unitId);
-        }
-    
-        if (!empty($status)) {
-            $query->where('jenispembayaran.status', '=', $status);
-        }
-    
-        // GUNAKAN PAGINATION
-        $filtered_data = $query->paginate($perPage)->withQueryString();
-    
-        $unitpendidikan = DB::table('unitpendidikan')->select('id', 'namaUnit')->get();
-    
-        return view('admin.manage-jenis-pembayaran', compact('filtered_data', 'unitpendidikan', 'unitId', 'status', 'perPage'), ['title' => 'Manage Jenis Pembayaran']);
-    }    
-    
-
-    public function create() {  
-        $tahunAjaran = TahunAjaran::where('status', 'Aktif')->get(['tahun_ajaran', 'id']);
-         return view('admin.create-jenis-pembayaran', compact('tahunAjaran'));
-    }
-    
-
-public function store(Request $request): RedirectResponse
-{
-    // Validasi input
-    $request->validate([
-        'nama_pembayaran' => 'required',
-        'type' => 'required',
-        'id_tahunajaran' => 'required',
-        'nominal_jenispembayaran' => 'required|numeric',
-        'status' => 'required',
-        'idunitpendidikan' => 'required',
-    ]);
-
-    // Cek apakah data sudah ada
-    $exists = JenisPembayaran::where('nama_pembayaran', $request->nama_pembayaran)
-        ->where('type', $request->type)
-        ->where('id_tahunajaran', $request->id_tahunajaran)
-        ->where('nominal_jenispembayaran', $request->nominal_jenispembayaran)
-        ->where('status', $request->status)
-        ->where('idunitpendidikan', $request->idunitpendidikan)
-        ->exists();
-
-    if ($exists) {
-        // Jika data sudah ada, kembalikan pesan error
-        return redirect()->back()->withErrors('Data sudah ada! Silakan masukkan data yang berbeda.');
-    }
-
-    // Jika data belum ada, simpan ke database
-    $jenispembayaran = JenisPembayaran::create([
-        'nama_pembayaran' => $request->nama_pembayaran,
-        'type' => $request->type,
-        'id_tahunajaran' => $request->id_tahunajaran,
-        'nominal_jenispembayaran' => $request->nominal_jenispembayaran,
-        'status' => $request->status,
-        'idunitpendidikan' => $request->idunitpendidikan,
-    ]);
-
-    // Trigger event jika diperlukan
-    event(new Registered($jenispembayaran));
-
-    // Redirect ke halaman manajemen jenis pembayaran dengan pesan sukses
-    return redirect(route('admin.manage-jenis-pembayaran', absolute: false))
-        ->with('success', 'Data berhasil ditambahkan!');
-}
-
-public function editData($id)
-{
-    // Ambil data jenis pembayaran yang akan diedit
-    $jenispembayaran = DB::table('jenispembayaran')
-        ->join('unitpendidikan', 'jenispembayaran.idunitpendidikan', '=', 'unitpendidikan.id')
-        ->join('tahunajaran', 'jenispembayaran.id_tahunajaran', '=', 'tahunajaran.id')
-        ->select(
-            'jenispembayaran.idjenispembayaran',
-            'jenispembayaran.nama_pembayaran',
-            'jenispembayaran.type',
-            'tahunajaran.tahun_ajaran',
-            'jenispembayaran.nominal_jenispembayaran',
-            'jenispembayaran.status',
-            'unitpendidikan.namaUnit',
-            'unitpendidikan.id as idunitpendidikan', // Pastikan ini benar
-            'jenispembayaran.id_tahunajaran' // Ambil id_tahunajaran untuk set selected option
-        )
-        ->where('idjenispembayaran', '=', $id)
-        ->first();
-
-    // Ambil daftar unit pendidikan
-    $unitpendidikan = DB::table('unitpendidikan')->get(['id', 'namaUnit']);
-
-    // Ambil tahun ajaran yang statusnya Aktif
-    $tahunAjaran = TahunAjaran::where('status', 'Aktif')->get(['id', 'tahun_ajaran']);
-
-    return view('admin.edit-jenis-pembayaran', compact('jenispembayaran', 'unitpendidikan', 'tahunAjaran'), ['title' => 'Edit Jenis Pembayaran']);
-}
-
-public function updateData(Request $request, $id)
-{
-    // Validasi input
-    $validatedData = $request->validate([
-        'nama_pembayaran' => 'required|string',
-        'type' => 'required|string',
-        'id_tahunajaran' => 'required|numeric',
-        'nominal_jenispembayaran' => 'required|numeric',
-        'status' => 'required|string',
-        'idunitpendidikan' => 'required|numeric',
-    ]);
-
-    // Lakukan update data
-    DB::table('jenispembayaran')
-        ->where('idjenispembayaran', '=', $id)
-        ->update([
-            'nama_pembayaran' => $validatedData['nama_pembayaran'],
-            'type' => $validatedData['type'],
-            'id_tahunajaran' => $validatedData['id_tahunajaran'],
-            'nominal_jenispembayaran' => $validatedData['nominal_jenispembayaran'],
-            'status' => $validatedData['status'],
-            'idunitpendidikan' => $validatedData['idunitpendidikan'], // Perbaikan
+        $validated = $request->validate([
+            'nama_pembayaran' => 'required|string',
+            'type' => 'required|string',
+            'id_tahunajaran' => 'required|numeric',
+            'nominal_jenispembayaran' => 'required|numeric',
+            'status' => 'required|string',
+            'idunitpendidikan' => 'required|numeric',
         ]);
 
+        DB::table('jenispembayaran')
+            ->where('id', '=', $id)
+            ->update([
+                'nama_pembayaran' => $validated['nama_pembayaran'],
+                'type' => $validated['type'],
+                'id_tahunajaran' => $validated['id_tahunajaran'],
+                'nominal_jenispembayaran' => $validated['nominal_jenispembayaran'],
+                'status' => $validated['status'],
+                'idunitpendidikan' => $validated['idunitpendidikan'],
+            ]);
 
-    return redirect()->route('admin.manage-jenis-pembayaran')->with('success', 'Data berhasil diperbarui!');
+        return redirect()->route('admin.manage-jenis-pembayaran')->with('success', 'Data berhasil diperbarui!');
+    }
 }
-
-
-
-} 
-
-
-?>

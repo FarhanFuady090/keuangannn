@@ -77,7 +77,7 @@
       <form method="GET" action="{{ route('admin.manage-unit-pendidikan') }}" class="flex items-center space-x-2">
     <label class="text-sm" for="entries">Show</label>
     <select class="border border-gray-300 rounded p-2 text-sm" id="entries" name="entries" onchange="this.form.submit()">
-        @foreach([10, 20, 30, 40, 1] as $num)
+        @foreach([10, 20, 30, 40, 100] as $num)
             <option value="{{ $num }}" {{ request('entries') == $num ? 'selected' : '' }}>{{ $num }}</option>
         @endforeach
     </select>
